@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>VoucherPay | Ultimate Cloud Dashboard</title>
+    <title>VoucherPay Ultimate | Cloud Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -19,91 +19,85 @@
         
         /* Layout */
         .sidebar { width: var(--sidebar-width); background: #1e293b; color: white; display: flex; flex-direction: column; padding: 20px; }
-        .sidebar-header { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; color: var(--primary-light); }
-        .nav-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: #cbd5e1; font-weight: 500; transition: 0.2s; }
+        .sidebar-header { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; color: var(--primary-light); display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: #cbd5e1; transition: 0.2s; }
         .nav-item:hover { background: #334155; color: white; }
         .nav-item.active { background: var(--primary); color: white; }
         .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #334155; }
 
         .main-content { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .view { display: none; } .view.active { display: block; animation: fadeIn 0.3s ease; }
 
         .card { background: var(--white); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .balance-card { background: linear-gradient(135deg, #4f46e5, #9333ea); color: white; }
         
-        input, select, textarea { width: 100%; padding: 12px 15px; margin: 8px 0; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.2s; }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
-        
-        .form-grid { display: grid; grid-template-columns: 2fr 2fr auto auto; gap: 15px; align-items: center; }
-        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; box-sizing: border-box; outline: none; }
+        textarea { height: 80px; resize: none; }
 
         button { cursor: pointer; border: none; font-weight: 600; border-radius: 10px; padding: 12px 20px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; transition: 0.2s; height: 46px; }
-        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; height: 38px; }
         .btn-warning { background: var(--warning); color: white; height: 38px; }
-        .btn-outline { background: transparent; border: 2px solid #e5e7eb; color: var(--text-main); width: 100%; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .badge-admin { background: #e0e7ff; color: #4338ca; }
-        .badge-active { background: #dcfce7; color: #065f46; }
-        .badge-paused { background: #fee2e2; color: #991b1b; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #f3f4f6; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
         .income { color: var(--success); font-weight: bold; }
         .expense { color: var(--danger); font-weight: bold; }
-
         .hidden { display: none !important; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay" class="overlay">
-    <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--primary)"></i>
-    <h2 style="margin-top:20px">Synchronisiere Cloud...</h2>
+    <i class="fas fa-spinner fa-spin fa-3x"></i>
+    <h2 style="margin-top:20px">Lade Cloud-Daten...</h2>
 </div>
 
 <div id="login-overlay" class="overlay" style="display:none;">
     <div class="login-card">
         <i class="fas fa-lock fa-3x" style="color:var(--primary); margin-bottom:20px"></i>
         <h2>VoucherPay Login</h2>
-        <input type="text" id="loginUser">
-        <input type="password" id="loginPass" >
-        <button class="btn-primary" style="width:100%" onclick="handleLogin()">Anmelden</button>
+        <input type="text" id="loginUser" placeholder="Benutzername">
+        <input type="password" id="loginPass" placeholder="Passwort">
+        <button class="btn-primary" onclick="handleLogin()">Einloggen</button>
         <p id="loginError" style="color:var(--danger); font-size:12px; margin-top:10px"></p>
     </div>
 </div>
 
 <div class="sidebar">
-    <div class="sidebar-header"><i class="fas fa-wallet"></i> <span>VoucherPay</span></div>
+    <div class="sidebar-header"><i class="fas fa-wallet"></i> VoucherPay</div>
     <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard"><i class="fas fa-home"></i> Dashboard</div>
     <div class="nav-item" onclick="showView('transfer')" id="nav-transfer"><i class="fas fa-paper-plane"></i> Senden</div>
     <div class="nav-item" onclick="showView('history')" id="nav-history"><i class="fas fa-history"></i> Verlauf</div>
     <div class="nav-item admin-only" onclick="showView('accounts')" id="nav-accounts"><i class="fas fa-users-cog"></i> Admin</div>
     <div class="nav-item" onclick="showView('settings')" id="nav-settings"><i class="fas fa-cog"></i> Einstellungen</div>
-    <div class="sidebar-footer"><div class="nav-item" onclick="logout()"><i class="fas fa-power-off"></i> Abmelden</div></div>
+    <div class="sidebar-footer">
+        <div class="nav-item" onclick="logout()"><i class="fas fa-power-off"></i> Abmelden</div>
+    </div>
 </div>
 
 <div class="main-content">
     <div class="header-bar">
         <h1 id="viewTitle">Dashboard</h1>
-        <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
-            <span id="currentUserRoleBadge" class="badge badge-admin"></span>
+        <div style="text-align: right">
+            <span id="currentUserRoleBadge" class="badge"></span><br>
             <strong id="currentUserName">-</strong>
         </div>
     </div>
 
     <div id="view-dashboard" class="view active">
         <div class="card balance-card">
-            <p style="margin:0; opacity:0.9">Aktuelles Guthaben</p>
+            <p style="margin:0; opacity:0.8;">Verfügbares Guthaben</p>
             <h1 id="myBalanceDisplay" style="margin:5px 0 0 0; font-size: 2.5rem;">0.00 §</h1>
         </div>
         <div class="card">
             <h2>Meine Gutscheine</h2>
             <table id="myVouchersTable">
-                <thead><tr><th>Code</th><th>Besitzer</th></tr></thead>
+                <thead><tr><th>Code</th><th>Status</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -111,21 +105,17 @@
 
     <div id="view-transfer" class="view">
         <div class="card">
-            <h2>Geld (§) überweisen</h2>
-            <div class="settings-grid">
-                <input type="number" id="transferAmount" placeholder="Betrag">
-                <select id="moneyReceiverSelect"></select>
-            </div>
-            <textarea id="moneyMsg" placeholder="Nachricht (optional)"></textarea>
-            <button class="btn-success" onclick="transferMoney()" style="width:100%"><i class="fas fa-coins"></i> § Senden</button>
+            <h2>Geld (§) senden</h2>
+            <input type="number" id="transferAmount" placeholder="Betrag in §">
+            <select id="moneyReceiverSelect"></select>
+            <textarea id="moneyMsg" placeholder="Nachricht an Empfänger..."></textarea>
+            <button class="btn-success" onclick="transferMoney()" style="width:100%"><i class="fas fa-coins"></i> Überweisen</button>
         </div>
         <div class="card">
             <h2>Gutschein senden</h2>
-            <div class="settings-grid">
-                <select id="voucherSelect"></select>
-                <select id="voucherReceiverSelect"></select>
-            </div>
-            <textarea id="voucherMsg" placeholder="Nachricht (optional)"></textarea>
+            <select id="voucherSelect"></select>
+            <select id="voucherReceiverSelect"></select>
+            <textarea id="voucherMsg" placeholder="Nachricht zum Gutschein..."></textarea>
             <button class="btn-primary" onclick="transferVoucher()" style="width:100%"><i class="fas fa-ticket-alt"></i> Gutschein senden</button>
         </div>
     </div>
@@ -134,7 +124,7 @@
         <div class="card">
             <h2>Transaktionsverlauf</h2>
             <table id="historyTable">
-                <thead><tr><th>Datum</th><th>Typ</th><th>Partner</th><th>Wert</th><th>Nachricht</th></tr></thead>
+                <thead><tr><th>Datum</th><th>Partner</th><th>Wert</th><th>Nachricht</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -143,51 +133,45 @@
     <div id="view-accounts" class="view admin-only">
         <div class="card">
             <h2>Nutzer anlegen</h2>
-            <div class="form-grid">
+            <div style="display:flex; gap:10px;">
                 <input type="text" id="newAccName" placeholder="Name">
                 <input type="text" id="newAccPass" placeholder="Passwort">
-                <label style="font-size:12px; cursor:pointer"><input type="checkbox" id="newAccIsAdmin"> Admin</label>
-                <button class="btn-primary" onclick="addAccount()">Erstellen</button>
+                <button class="btn-primary" onclick="addAccount()" style="width:auto">Erstellen</button>
             </div>
         </div>
         <div class="card">
-            <h2>Benutzer-Manager</h2>
+            <h2>Benutzerliste</h2>
             <table id="accountTable">
-                <thead><tr><th>Name</th><th>PW</th><th>Guthaben</th><th>Status</th><th style="text-align:right">Aktionen</th></tr></thead>
+                <thead><tr><th>Name</th><th>Guthaben</th><th>Status</th><th>Aktionen</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
         <div class="card">
-            <h2>Gutschein drucken</h2>
-            <div class="form-grid">
+            <h2>Gutschein generieren</h2>
+            <div style="display:flex; gap:10px;">
                 <input type="text" id="newVCode" placeholder="Code">
                 <select id="initialOwnerSelect"></select>
-                <button class="btn-primary" onclick="createVoucher()" style="background:#334155">Drucken</button>
+                <button class="btn-primary" onclick="createVoucher()" style="width:auto; background:#334155">Drucken</button>
             </div>
         </div>
     </div>
 
     <div id="view-settings" class="view">
-        <div class="settings-grid">
-            <div class="card">
-                <h2>Profil bearbeiten</h2>
-                <select id="editUserSelect" onchange="loadUserIntoEditForm()"></select>
-                <input type="text" id="editUserName" placeholder="Neuer Name">
-                <input type="text" id="editUserPass" placeholder="Neues Passwort">
-                <button class="btn-primary" style="width:100%; margin-top:10px" onclick="updateUserData()">Speichern</button>
-            </div>
-            <div class="card admin-only">
-                <h2>Backup & Sicherheit</h2>
-                <button class="btn-outline" onclick="downloadBackup()"><i class="fas fa-download"></i> Backup (.json)</button>
-                <hr style="margin:20px 0; border:0; border-top:1px solid #eee">
-                <input type="file" id="backupFile" accept=".json">
-                <button class="btn-primary" style="background:var(--danger); width:100%; margin-top:10px" onclick="importBackup()">Wiederherstellen</button>
-            </div>
+        <div class="card">
+            <h2>Profil bearbeiten</h2>
+            <input type="text" id="editUserName" placeholder="Neuer Name">
+            <input type="text" id="editUserPass" placeholder="Neues Passwort">
+            <button class="btn-primary" onclick="updateUserData()">Speichern</button>
+        </div>
+        <div class="card admin-only">
+            <h2>Backup</h2>
+            <button class="btn-primary" onclick="downloadBackup()" style="background:#6b7280"><i class="fas fa-download"></i> Backup exportieren</button>
         </div>
     </div>
 </div>
 
 <script>
+    // Konfiguration
     const SUPABASE_URL = 'https://cilvtkbochcuanmakrgq.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -211,16 +195,15 @@
         const pass = document.getElementById('loginPass').value.trim();
         const found = accounts.find(a => a.name.trim() === name && a.pass.trim() === pass);
         if(found) {
-            if(!found.active) return alert("Account pausiert!");
+            if(!found.active) return alert("Account ist deaktiviert.");
             currentUser = found;
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('currentUserName').innerText = currentUser.name;
             document.getElementById('currentUserRoleBadge').innerText = currentUser.role.toUpperCase();
             document.querySelectorAll('.admin-only').forEach(e => currentUser.role === 'admin' ? e.classList.remove('hidden') : e.classList.add('hidden'));
-            loadUserIntoEditForm();
             render();
         } else {
-            document.getElementById('loginError').innerText = "Fehler: Login ungültig!";
+            document.getElementById('loginError').innerText = "Login fehlgeschlagen!";
         }
     }
 
@@ -231,7 +214,7 @@
         const receiver = accounts.find(a => a.name === receiverName);
 
         if(isNaN(amount) || amount <= 0) return alert("Betrag ungültig!");
-        if(currentUser.role !== 'admin' && currentUser.balance < amount) return alert("Guthaben zu niedrig!");
+        if(currentUser.role !== 'admin' && currentUser.balance < amount) return alert("Guthaben unzureichend!");
 
         if(currentUser.role !== 'admin') await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
         await db.from('accounts').update({ balance: receiver.balance + amount }).eq('name', receiverName);
@@ -254,16 +237,6 @@
         fetchCloudData();
     }
 
-    async function addAccount() {
-        const name = document.getElementById('newAccName').value.trim();
-        const pass = document.getElementById('newAccPass').value.trim();
-        const isAdmin = document.getElementById('newAccIsAdmin').checked;
-        if(name && pass) {
-            await db.from('accounts').insert([{ name, pass, role: isAdmin ? 'admin' : 'user', active: true, balance: 100 }]);
-            fetchCloudData();
-        }
-    }
-
     async function toggleStatus(name) {
         if(name === currentUser.name) return;
         const acc = accounts.find(a => a.name === name);
@@ -273,8 +246,17 @@
 
     async function deleteAcc(name) {
         if(name === "Jakob Krammer" || name === currentUser.name) return;
-        if(confirm(`Nutzer ${name} löschen?`)) {
+        if(confirm(`Nutzer ${name} wirklich löschen?`)) {
             await db.from('accounts').delete().eq('name', name);
+            fetchCloudData();
+        }
+    }
+
+    async function addAccount() {
+        const name = document.getElementById('newAccName').value.trim();
+        const pass = document.getElementById('newAccPass').value.trim();
+        if(name && pass) {
+            await db.from('accounts').insert([{ name, pass, role: 'user', active: true, balance: 100 }]);
             fetchCloudData();
         }
     }
@@ -286,45 +268,6 @@
             await db.from('vouchers').insert([{ code, owner }]);
             fetchCloudData();
         }
-    }
-
-    function loadUserIntoEditForm() {
-        const select = document.getElementById('editUserSelect');
-        const user = accounts.find(a => a.name === select.value) || currentUser;
-        document.getElementById('editUserName').value = user.name;
-        document.getElementById('editUserPass').value = user.pass;
-    }
-
-    async function updateUserData() {
-        const oldName = document.getElementById('editUserSelect').value;
-        const newName = document.getElementById('editUserName').value.trim();
-        const newPass = document.getElementById('editUserPass').value.trim();
-        await db.from('accounts').update({ name: newName, pass: newPass }).eq('name', oldName);
-        if(oldName !== newName) await db.from('vouchers').update({ owner: newName }).eq('owner', oldName);
-        if(currentUser.name === oldName) currentUser.name = newName;
-        fetchCloudData();
-    }
-
-    function downloadBackup() {
-        const data = { accounts, vouchers, transactions };
-        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'VoucherPay_Backup.json'; a.click();
-    }
-
-    async function importBackup() {
-        const file = document.getElementById('backupFile').files[0];
-        if(!file || !confirm("Cloud-Daten überschreiben?")) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const data = JSON.parse(e.target.result);
-            await db.from('vouchers').delete().neq('id', -1);
-            await db.from('accounts').delete().neq('id', -1);
-            await db.from('accounts').insert(data.accounts);
-            await db.from('vouchers').insert(data.vouchers);
-            location.reload();
-        };
-        reader.readAsText(file);
     }
 
     function showView(id) {
@@ -340,11 +283,11 @@
 
     function render() {
         if(!currentUser) return;
-        const user = accounts.find(a => a.name === currentUser.name);
+        const user = accounts.find(a => a.id === currentUser.id);
         document.getElementById('myBalanceDisplay').innerText = user.role === 'admin' ? '∞ §' : `${user.balance.toFixed(2)} §`;
         
         const myV = vouchers.filter(v => v.owner === user.name);
-        document.getElementById('myVouchersTable').querySelector('tbody').innerHTML = myV.map(v => `<tr><td><code>${v.code}</code></td><td>Du</td></tr>`).join('');
+        document.getElementById('myVouchersTable').querySelector('tbody').innerHTML = myV.map(v => `<tr><td><code>${v.code}</code></td><td>Verfügbar</td></tr>`).join('');
         
         const others = accounts.filter(a => a.name !== user.name && a.active);
         const opts = others.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
@@ -352,22 +295,28 @@
         document.getElementById('voucherReceiverSelect').innerHTML = opts;
         document.getElementById('voucherSelect').innerHTML = myV.map(v => `<option value="${v.code}">${v.code}</option>`).join('');
         document.getElementById('initialOwnerSelect').innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-        document.getElementById('editUserSelect').innerHTML = user.role === 'admin' ? accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('') : `<option value="${user.name}">${user.name}</option>`;
 
         document.getElementById('historyTable').querySelector('tbody').innerHTML = transactions.filter(t => t.sender === user.name || t.receiver === user.name).map(t => {
             const isSender = t.sender === user.name;
             const partner = isSender ? `An: ${t.receiver}` : `Von: ${t.sender}`;
             const val = t.type === 'money' ? `${t.amount} §` : t.voucher_code;
-            return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${t.type === 'money' ? '§' : '🎟'}</td><td>${partner}</td><td class="${isSender?'expense':'income'}">${isSender?'-':'+'}${val}</td><td>${t.message||''}</td></tr>`;
+            return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${partner}</td><td class="${isSender?'expense':'income'}">${isSender?'-':'+'}${val}</td><td>${t.message||''}</td></tr>`;
         }).join('');
 
         if(user.role === 'admin') {
             document.getElementById('accountTable').querySelector('tbody').innerHTML = accounts.map(a => `
-                <tr><td>${a.name}</td><td><code>${a.pass}</code></td><td>${a.balance} §</td><td><span class="badge ${a.active?'badge-active':'badge-paused'}">${a.active?'Aktiv':'Pause'}</span></td>
-                <td style="text-align:right"><button class="${a.active?'btn-warning':'btn-success'}" onclick="toggleStatus('${a.name}')"><i class="fas ${a.active?'fa-pause':'fa-play'}"></i></button>
+                <tr><td>${a.name}</td><td>${a.balance.toFixed(2)} §</td><td><span class="badge ${a.active?'badge-active':'badge-paused'}">${a.active?'Aktiv':'Pause'}</span></td>
+                <td><button class="btn-warning" onclick="toggleStatus('${a.name}')"><i class="fas fa-pause"></i></button>
                 <button class="btn-danger" onclick="deleteAcc('${a.name}')"><i class="fas fa-trash"></i></button></td></tr>
             `).join('');
         }
+    }
+
+    function downloadBackup() {
+        const data = { accounts, vouchers, transactions };
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; a.click();
     }
 </script>
 </body>
