@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>VoucherPay | Cloud Ultimate Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --sidebar-width: 260px; --primary: #4f46e5; --primary-light: #6366f1;
+            --bg: #f3f4f6; --text-main: #111827; --text-muted: #6b7280; --white: #ffffff;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Overlays */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; color: white;}
+        .login-card { background: white; padding: 40px; border-radius: 20px; width: 350px; text-align: center; box-shadow: 0 20px 25px rgba(0,0,0,0.3); color: var(--text-main);}
+        
+        /* Layout */
+        .sidebar { width: var(--sidebar-width); background: #1e293b; color: white; display: flex; flex-direction: column; padding: 20px; }
+        .sidebar-header { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; color: var(--primary-light); }
+        .nav-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: #cbd5e1; font-weight: 500; }
+        .nav-item:hover { background: #334155; color: white; }
+        .nav-item.active { background: var(--primary); color: white; }
+        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #334155; }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .view { display: none; } .view.active { display: block; animation: fadeIn 0.2s ease-out; }
+
+        /* Cards & Forms */
+        .card { background: var(--white); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .balance-card { background: linear-gradient(135deg, #4f46e5, #9333ea); color: white; }
+        .form-grid { display: grid; grid-template-columns: 2fr 2fr auto auto; gap: 15px; align-items: center; margin-top: 15px; }
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        input, select { width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; box-sizing: border-box; height: 46px; outline: none;}
+        input:focus, select:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        
+        .toggle-btn { height: 46px; padding: 0 20px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; background: #f3f4f6; color: var(--text-muted); border: 1px solid #e5e7eb; }
+        .hidden-checkbox:checked + .toggle-btn { background: #e0e7ff; color: #4338ca; border-color: #6366f1; }
+
+        button { cursor: pointer; border: none; font-weight: 600; border-radius: 10px; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; height: 46px; font-size: 14px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-danger { background: var(--danger); color: white; height: 38px; padding: 0 15px; }
+        .btn-warning { background: var(--warning); color: white; height: 38px; padding: 0 15px; }
+        .btn-success { background: var(--success); color: white; height: 38px; padding: 0 15px; }
+        .btn-outline { background: transparent; border: 2px solid #e5e7eb; color: var(--text-main); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; color: var(--text-muted); font-size: 12px; text-transform: uppercase; padding: 12px 10px; border-bottom: 2px solid #f3f4f6; }
+        td { padding: 15px 10px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .badge-admin { background: #e0e7ff; color: #4338ca; }
+        .badge-user { background: #f3f4f6; color: #374151; }
+        .badge-active { background: #dcfce7; color: #065f46; }
+        .badge-paused { background: #fee2e2; color: #991b1b; }
+
+        .hidden { display: none !important; }
+        .action-group { display: flex; gap: 8px; justify-content: flex-end; }
+        .form-group label { display: block; font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay" class="overlay">
+    <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary); margin-bottom: 20px;"></i>
+    <h2>Verbinde mit Cloud...</h2>
+</div>
+
+<div id="login-overlay" class="overlay" style="display:none;">
+    <div class="login-card">
+        <i class="fas fa-fingerprint fa-3x" style="color: var(--primary); margin-bottom: 20px;"></i>
+        <h2 style="margin-top:0;">Cloud Login</h2>
+        <input type="text" id="loginUser" placeholder="Benutzername" style="margin-bottom:15px;">
+        <input type="password" id="loginPass" placeholder="Passwort" style="margin-bottom:20px;">
+        <button class="btn-primary" style="width:100%; height:46px;" onclick="handleLogin()">System betreten</button>
+        <p id="loginError" style="color:var(--danger); font-size:13px; margin-top:15px; font-weight:500;"></p>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="sidebar-header"><i class="fas fa-wallet"></i> <span>VoucherPay §</span></div>
+    <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard"><i class="fas fa-home"></i> Dashboard</div>
+    <div class="nav-item admin-only" onclick="showView('accounts')" id="nav-accounts"><i class="fas fa-users-cog"></i> Benutzer-Manager</div>
+    <div class="nav-item" onclick="showView('transfer')" id="nav-transfer"><i class="fas fa-paper-plane"></i> Überweisungen</div>
+    <div class="nav-item" onclick="showView('settings')" id="nav-settings"><i class="fas fa-cog"></i> Einstellungen</div>
+    <div class="sidebar-footer"><div class="nav-item" onclick="logout()"><i class="fas fa-power-off"></i> Abmelden</div></div>
+</div>
+
+<div class="main-content">
+    <div class="header-bar">
+        <h1 id="viewTitle" style="margin:0; font-size: 1.5rem; color:var(--text-main);">Dashboard</h1>
+        <div style="font-weight: 500; color: var(--text-muted); display:flex; align-items:center; gap:10px;">
+            <span id="currentUserRoleBadge" class="badge"></span>
+            <span id="currentUserName" style="color: var(--primary); font-weight: bold; font-size: 1.1rem;">-</span>
+        </div>
+    </div>
+
+    <div id="view-dashboard" class="view active">
+        <div class="card balance-card">
+            <h3 style="margin:0 0 10px 0; font-weight:500; opacity:0.9;">Aktuelles Guthaben</h3>
+            <h1 id="myBalanceDisplay" style="margin:0; font-size: 2.5rem;">0.00 §</h1>
+        </div>
+        <div class="card">
+            <h2 style="margin-top:0;">Meine Gutscheine</h2>
+            <table id="myVouchersTable">
+                <thead><tr><th>Code</th><th>Besitzer</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="view-accounts" class="view admin-only">
+        <div class="card">
+            <h2 style="margin-top:0;">Neuen Nutzer erstellen</h2>
+            <div class="form-grid">
+                <input type="text" id="newAccName" placeholder="Benutzername">
+                <input type="text" id="newAccPass" placeholder="Passwort">
+                <div>
+                    <input type="checkbox" id="newAccIsAdmin" class="hidden-checkbox" hidden>
+                    <label for="newAccIsAdmin" class="toggle-btn"><i class="fas fa-user-shield"></i> Admin</label>
+                </div>
+                <button class="btn-primary" onclick="addAccount()"><i class="fas fa-plus"></i> Erstellen</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2 style="margin-top:0;">Benutzerliste</h2>
+            <table id="accountTable">
+                <thead><tr><th>Name</th><th>Passwort</th><th>Guthaben</th><th>Rolle</th><th>Status</th><th style="text-align: right;">Aktionen</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="view-transfer" class="view">
+        <div class="card">
+            <h2 style="margin-top:0;">Geld (§) überweisen</h2>
+            <div class="settings-grid" style="margin-top: 15px;">
+                <div class="form-group"><label>Betrag in §</label><input type="number" id="transferAmount" placeholder="z.B. 50.00" step="0.01"></div>
+                <div class="form-group"><label>Empfänger wählen</label><select id="moneyReceiverSelect"></select></div>
+            </div>
+            <button class="btn-primary" onclick="transferMoney()" style="background: var(--success); margin-top: 20px; width:100%;">
+                <i class="fas fa-coins"></i> § Senden
+            </button>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-top:0;">Gutschein verschicken</h2>
+            <div class="settings-grid" style="margin-top: 15px;">
+                <div class="form-group"><label>Gutschein auswählen</label><select id="voucherSelect"></select></div>
+                <div class="form-group"><label>Empfänger wählen</label><select id="voucherReceiverSelect"></select></div>
+            </div>
+            <button class="btn-primary" onclick="transferVoucher()" style="background: #3b82f6; margin-top: 20px; width:100%;">
+                <i class="fas fa-exchange-alt"></i> Gutschein senden
+            </button>
+        </div>
+        
+        <div class="card admin-only">
+            <h2 style="margin-top:0;">Neuen Gutschein generieren</h2>
+            <div class="form-grid">
+                <input type="text" id="newVCode" placeholder="Gutschein-Code eingeben">
+                <select id="initialOwnerSelect"></select>
+                <button class="btn-primary" style="background: #334155;" onclick="createVoucher()">
+                    <i class="fas fa-print"></i> Drucken
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-settings" class="view">
+        <div class="settings-grid">
+            <div class="card">
+                <h2 style="margin-top:0;">Nutzerdaten bearbeiten</h2>
+                <div class="form-group" style="margin-top:15px;"><label>Profil auswählen</label><select id="editUserSelect" onchange="loadUserIntoEditForm()"></select></div>
+                <div class="form-group" style="margin-top:15px;"><label>Neuer Username</label><input type="text" id="editUserName"></div>
+                <div class="form-group" style="margin-top:15px;"><label>Neues Passwort</label><input type="text" id="editUserPass"></div>
+                <button class="btn-primary" style="width:100%; margin-top:20px;" onclick="updateUserData()"><i class="fas fa-save"></i> Cloud-Sync Speichern</button>
+                <div id="editMsg" style="margin-top:15px; text-align: center; font-size:13px; font-weight:bold;"></div>
+            </div>
+
+            <div class="card admin-only">
+                <h2 style="margin-top:0;"><i class="fas fa-database"></i> Cloud Backup</h2>
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom: 20px;">Lade eine Offline-Kopie aus Supabase herunter oder spiele ein Backup ein.</p>
+                
+                <button class="btn-outline" style="width:100%; margin-bottom: 20px; height:46px;" onclick="downloadBackup()">
+                    <i class="fas fa-download"></i> Backup Herunterladen (.json)
+                </button>
+                
+                <hr style="border:0; border-top:1px solid #e5e7eb; margin-bottom: 20px;">
+                
+                <div class="form-group">
+                    <label>Backup einspielen</label>
+                    <input type="file" id="backupFileInput" accept=".json" style="padding: 10px; height:auto;">
+                </div>
+                <button class="btn-primary" style="background: var(--danger); width:100%; margin-top: 10px;" onclick="importBackup()">
+                    <i class="fas fa-upload"></i> Cloud überschreiben
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // 1. SUPABASE SETUP
+    // ==========================================
+    const SUPABASE_URL = 'https://cilvtkbochcuanmakrgq.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd';
+    
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let accounts = [];
+    let vouchers = [];
+    let currentUser = null;
+
+    // ==========================================
+    // 2. DATENBANK SYNCHRONISATION
+    // ==========================================
+    async function fetchCloudData() {
+        try {
+            const { data: accData, error: err1 } = await db.from('accounts').select('*');
+            const { data: voucData, error: err2 } = await db.from('vouchers').select('*');
+            
+            if(err1) throw err1;
+            if(err2) throw err2;
+
+            accounts = accData || [];
+            vouchers = voucData || [];
+
+            document.getElementById('loading-overlay').style.display = 'none';
+            if(!currentUser) {
+                document.getElementById('login-overlay').style.display = 'flex';
+            } else {
+                // Update current user balance from fresh data
+                currentUser = accounts.find(a => a.name === currentUser.name) || currentUser;
+                render();
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Fehler bei der Cloud-Verbindung. (URL/KEY korrekt?)");
+        }
+    }
+
+    window.onload = () => fetchCloudData();
+
+    // ==========================================
+    // 3. LOGIK: LOGIN & NAVIGATION
+    // ==========================================
+    function handleLogin() {
+        const inputName = document.getElementById('loginUser').value.trim();
+        const inputPass = document.getElementById('loginPass').value.trim();
+        const found = accounts.find(a => a.name.trim() === inputName && a.pass.trim() === inputPass);
+
+        if(found) {
+            if(!found.active) { alert("Dieses Konto ist pausiert."); return; }
+            currentUser = found;
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('currentUserName').innerText = currentUser.name;
+            
+            const badge = document.getElementById('currentUserRoleBadge');
+            badge.innerText = currentUser.role.toUpperCase();
+            badge.className = `badge badge-${currentUser.role}`;
+            
+            document.querySelectorAll('.admin-only').forEach(e => {
+                currentUser.role === 'admin' ? e.classList.remove('hidden') : e.classList.add('hidden');
+            });
+            render();
+            loadUserIntoEditForm();
+        } else {
+            document.getElementById('loginError').innerText = "Zugangsdaten ungültig.";
+        }
+    }
+
+    function showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('nav-' + viewId).classList.add('active');
+        document.getElementById('viewTitle').innerText = document.getElementById('nav-' + viewId).innerText.trim();
+        render();
+    }
+
+    function logout() { location.reload(); }
+
+    // ==========================================
+    // 4. LOGIK: KONTEN MANAGER
+    // ==========================================
+    async function addAccount() {
+        let name = document.getElementById('newAccName').value.trim();
+        let pass = document.getElementById('newAccPass').value.trim();
+        let isAdmin = document.getElementById('newAccIsAdmin').checked;
+        
+        if(name && pass && !accounts.find(a => a.name.trim() === name)) {
+            const newAcc = { name, pass, role: isAdmin ? "admin" : "user", active: true, balance: 100.00 };
+            await db.from('accounts').insert([newAcc]);
+            await fetchCloudData();
+            document.getElementById('newAccName').value = "";
+            document.getElementById('newAccPass').value = "";
+        }
+    }
+
+    async function toggleStatus(name) {
+        if(name === currentUser.name) return;
+        let acc = accounts.find(a => a.name === name);
+        await db.from('accounts').update({ active: !acc.active }).eq('name', name);
+        await fetchCloudData();
+    }
+
+    async function deleteAcc(name) {
+        if(name === "Jakob Krammer" || name === currentUser.name) return alert("Dieses Konto ist geschützt!");
+        if(confirm(`Nutzer '${name}' wirklich aus der Cloud löschen?`)) {
+            await db.from('vouchers').update({ owner: currentUser.name }).eq('owner', name);
+            await db.from('accounts').delete().eq('name', name);
+            await fetchCloudData();
+        }
+    }
+
+    // ==========================================
+    // 5. LOGIK: TRANSFERS (§ & Gutscheine)
+    // ==========================================
+    async function transferMoney() {
+        const amount = parseFloat(document.getElementById('transferAmount').value);
+        const receiverName = document.getElementById('moneyReceiverSelect').value;
+        const receiver = accounts.find(a => a.name === receiverName);
+
+        if(isNaN(amount) || amount <= 0) return alert("Ungültiger Betrag!");
+        if(currentUser.role !== 'admin' && currentUser.balance < amount) return alert("Nicht genug Guthaben!");
+
+        // Update Backend
+        if(currentUser.role !== 'admin') {
+            await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
+        }
+        await db.from('accounts').update({ balance: receiver.balance + amount }).eq('name', receiverName);
+
+        alert(`Erfolgreich ${amount} § an ${receiverName} gesendet!`);
+        document.getElementById('transferAmount').value = "";
+        await fetchCloudData();
+    }
+
+    async function transferVoucher() {
+        const code = document.getElementById('voucherSelect').value;
+        const receiver = document.getElementById('voucherReceiverSelect').value;
+        if(!code || !receiver) return;
+        
+        await db.from('vouchers').update({ owner: receiver }).eq('code', code);
+        await fetchCloudData();
+        alert(`Gutschein an ${receiver} versendet!`);
+    }
+
+    async function createVoucher() {
+        let code = document.getElementById('newVCode').value.trim();
+        let owner = document.getElementById('initialOwnerSelect').value;
+        if(code && owner && !vouchers.find(v => v.code === code)) {
+            await db.from('vouchers').insert([{ code, owner }]);
+            await fetchCloudData();
+            document.getElementById('newVCode').value = "";
+        }
+    }
+
+    // ==========================================
+    // 6. LOGIK: EINSTELLUNGEN & BACKUP
+    // ==========================================
+    function loadUserIntoEditForm() {
+        const selected = document.getElementById('editUserSelect').value;
+        const user = accounts.find(a => a.name === selected);
+        if(user) {
+            document.getElementById('editUserName').value = user.name;
+            document.getElementById('editUserPass').value = user.pass;
+        }
+    }
+
+    async function updateUserData() {
+        const targetOldName = document.getElementById('editUserSelect').value;
+        const newName = document.getElementById('editUserName').value.trim();
+        const newPass = document.getElementById('editUserPass').value.trim();
+        const msgBox = document.getElementById('editMsg');
+
+        if(!newName || !newPass) return;
+        if(newName !== targetOldName && accounts.find(a => a.name.trim() === newName)) {
+            msgBox.innerHTML = '<span style="color:var(--danger)">Name existiert bereits.</span>'; return;
+        }
+
+        await db.from('accounts').update({ name: newName, pass: newPass }).eq('name', targetOldName);
+        if(newName !== targetOldName) {
+            await db.from('vouchers').update({ owner: newName }).eq('owner', targetOldName);
+        }
+
+        if(currentUser.name === targetOldName) currentUser.name = newName;
+        
+        await fetchCloudData();
+        msgBox.innerHTML = '<span style="color:var(--success)"><i class="fas fa-check"></i> Gespeichert!</span>';
+        setTimeout(() => msgBox.innerHTML = "", 3000);
+    }
+
+    function downloadBackup() {
+        // IDs entfernen, damit sie beim späteren Import in Supabase keine Konflikte machen
+        const cleanAccounts = accounts.map(({ id, ...rest }) => rest);
+        const cleanVouchers = vouchers.map(({ id, ...rest }) => rest);
+        
+        const data = { accounts: cleanAccounts, vouchers: cleanVouchers };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "VoucherPay_Cloud_Backup.json");
+        document.body.appendChild(dl);
+        dl.click();
+        dl.remove();
+    }
+
+    async function importBackup() {
+        const fileInput = document.getElementById('backupFileInput');
+        if (!fileInput.files.length) return alert("Bitte Datei auswählen.");
+        
+        if(confirm("ACHTUNG: Dies löscht alle Cloud-Daten und ersetzt sie durch das Backup!")) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.accounts && data.vouchers) {
+                        document.getElementById('loading-overlay').style.display = 'flex';
+                        
+                        // 1. Alles in der Cloud löschen (Dafür nutzen wir den Trick id > 0)
+                        await db.from('vouchers').delete().gt('id', -1);
+                        await db.from('accounts').delete().gt('id', -1);
+                        
+                        // 2. Backup Daten einspielen
+                        await db.from('accounts').insert(data.accounts);
+                        await db.from('vouchers').insert(data.vouchers);
+                        
+                        alert("Backup in Cloud hochgeladen! Bitte neu anmelden.");
+                        logout();
+                    }
+                } catch (err) {
+                    alert("Fehler beim Lesen der Datei!");
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+    }
+
+    // ==========================================
+    // 7. UI RENDERING
+    // ==========================================
+    function render() {
+        if(!currentUser) return;
+
+        // Kontostand
+        document.getElementById('myBalanceDisplay').innerText = currentUser.role === 'admin' ? '∞ §' : `${currentUser.balance.toFixed(2)} §`;
+
+        // Account Tabelle (Admin)
+        const aTbody = document.querySelector('#accountTable tbody');
+        if(aTbody) {
+            aTbody.innerHTML = accounts.map(a => `
+                <tr>
+                    <td><strong>${a.name}</strong></td>
+                    <td><code>${a.pass}</code></td>
+                    <td><strong style="color:var(--primary)">${a.role === 'admin' ? '∞' : a.balance + ' §'}</strong></td>
+                    <td><span class="badge badge-${a.role}">${a.role.toUpperCase()}</span></td>
+                    <td><span class="badge ${a.active ? 'badge-active' : 'badge-paused'}">${a.active ? 'AKTIV' : 'PAUSIERT'}</span></td>
+                    <td>
+                        <div class="action-group">
+                            <button class="${a.active ? 'btn-warning' : 'btn-success'}" onclick="toggleStatus('${a.name}')" title="${a.active ? 'Pausieren' : 'Aktivieren'}"><i class="fas ${a.active ? 'fa-pause' : 'fa-play'}"></i></button>
+                            <button class="btn-danger" onclick="deleteAcc('${a.name}')" title="Löschen"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Voucher Tabellen
+        const myVTable = document.querySelector('#myVouchersTable tbody');
+        const myV = currentUser.role === "admin" ? vouchers : vouchers.filter(v => v.owner === currentUser.name);
+        myVTable.innerHTML = myV.length ? myV.map(v => `<tr><td><code style="font-size:15px;">${v.code}</code></td><td>${v.owner}</td></tr>`).join('') : '<tr><td colspan="2" style="text-align:center; color:gray; padding: 30px;">Keine Gutscheine.</td></tr>';
+
+        // Selects
+        const vSelect = document.getElementById('voucherSelect');
+        vSelect.innerHTML = myV.map(v => `<option value="${v.code}">${v.code}</option>`).join('');
+        
+        const activeOthers = accounts.filter(a => a.name !== currentUser.name && a.active);
+        const otherOptions = activeOthers.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        
+        document.getElementById('moneyReceiverSelect').innerHTML = otherOptions;
+        document.getElementById('voucherReceiverSelect').innerHTML = otherOptions;
+        
+        const iSelect = document.getElementById('initialOwnerSelect');
+        if(iSelect) iSelect.innerHTML = accounts.filter(a => a.active).map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+
+        // Settings Edit Select
+        const editSelect = document.getElementById('editUserSelect');
+        if(editSelect) {
+            const currentSelection = editSelect.value;
+            editSelect.innerHTML = currentUser.role === 'admin' ? accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('') : `<option value="${currentUser.name}">${currentUser.name}</option>`;
+            if(currentSelection && accounts.find(a => a.name === currentSelection)) editSelect.value = currentSelection;
+        }
+    }
+</script>
+</body>
+</html>
