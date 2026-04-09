@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay Premium | Cloud Dashboard</title>
+    <title>VoucherPay Ultimate | Cloud Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -13,7 +13,6 @@
             --sidebar-width: 280px;
             --primary: #6366f1;
             --primary-dark: #4f46e5;
-            --secondary: #64748b;
             --bg-body: #f8fafc;
             --bg-card: #ffffff;
             --text-main: #0f172a;
@@ -22,200 +21,132 @@
             --danger: #ef4444;
             --warning: #f59e0b;
             --radius: 16px;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Loading & Login */
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0f172a; display: flex; align-items: center;
-            justify-content: center; z-index: 9999; flex-direction: column; color: white;
-        }
-        .login-card {
-            background: white; padding: 40px; border-radius: 24px;
-            width: 100%; max-width: 400px; text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: var(--text-main);
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width); background: #ffffff;
-            border-right: 1px solid #e2e8f0; display: flex;
-            flex-direction: column; padding: 32px 20px;
-        }
-        .sidebar-header {
-            font-size: 1.5rem; font-weight: 700; color: var(--primary);
-            display: flex; align-items: center; gap: 12px; margin-bottom: 48px;
-            padding-left: 10px;
-        }
-        .nav-item {
-            padding: 14px 16px; border-radius: 12px; cursor: pointer;
-            display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
-            color: var(--text-muted); font-weight: 500; transition: all 0.2s;
-        }
-        .nav-item i { font-size: 1.2rem; }
-        .nav-item:hover { background: #f1f5f9; color: var(--primary); }
-        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #f1f5f9; }
-
-        /* Main Content */
-        .main-content { flex: 1; overflow-y: auto; padding: 40px; }
-        .header-bar {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 40px;
-        }
-        .user-profile {
-            background: white; padding: 8px 16px; border-radius: 30px;
-            display: flex; align-items: center; gap: 12px; border: 1px solid #e2e8f0;
-        }
-        .view { display: none; }
-        .view.active { display: block; animation: slideUp 0.4s ease-out; }
-
-        /* Cards */
-        .card {
-            background: var(--bg-card); border-radius: var(--radius);
-            padding: 28px; box-shadow: var(--shadow); border: 1px solid #f1f5f9;
-            margin-bottom: 24px;
-        }
-        .balance-card {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            color: white; border: none; position: relative; overflow: hidden;
-        }
-        .balance-card::after {
-            content: ''; position: absolute; width: 200px; height: 200px;
-            background: rgba(255,255,255,0.1); border-radius: 50%;
-            top: -50px; right: -50px;
-        }
-
-        /* Inputs & Buttons */
-        input, select, textarea {
-            width: 100%; padding: 14px 18px; margin: 10px 0;
-            border: 1px solid #e2e8f0; border-radius: 12px;
-            font-size: 0.95rem; background: #f8fafc; transition: all 0.2s;
-        }
-        input:focus { border-color: var(--primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-
-        button {
-            cursor: pointer; border: none; font-weight: 600; border-radius: 12px;
-            padding: 14px 24px; display: inline-flex; align-items: center;
-            gap: 10px; transition: all 0.2s; font-size: 0.95rem;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        .btn-success { background: var(--success); color: white; width: 100%; justify-content: center; }
-        .btn-action { padding: 8px; border-radius: 8px; font-size: 1rem; }
-
-        /* Tables */
-        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 10px; }
-        th { text-align: left; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 16px; }
-        td { padding: 16px; background: white; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
-        td:first-child { border-left: 1px solid #f1f5f9; border-radius: 12px 0 0 12px; }
-        td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 12px 12px 0; }
-
+        /* Status & Badges */
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .online { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+        .offline { background-color: #cbd5e1; }
         .badge { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; }
         .badge-active { background: #dcfce7; color: #166534; }
         .badge-paused { background: #fee2e2; color: #991b1b; }
+
+        /* Overlays */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; color: white; }
+        .login-card { background: white; padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; color: var(--text-main); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; padding: 32px 20px; }
+        .sidebar-header { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .nav-item { padding: 14px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: var(--text-muted); font-weight: 500; transition: 0.2s; }
+        .nav-item:hover { background: #f1f5f9; color: var(--primary); }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+        /* Main */
+        .main-content { flex: 1; overflow-y: auto; padding: 40px; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card { background: var(--bg-card); border-radius: var(--radius); padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #f1f5f9; }
+        .balance-card { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; }
+
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-family: inherit; outline: none; }
+        button { cursor: pointer; border: none; font-weight: 600; border-radius: 12px; padding: 12px 20px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; justify-content: center; }
+        .btn-success { background: var(--success); color: white; width: 100%; justify-content: center; }
+        .btn-danger { background: var(--danger); color: white; padding: 8px; }
+        .btn-warning { background: var(--warning); color: white; padding: 8px; }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        td { padding: 16px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
         .income { color: var(--success); font-weight: 700; }
         .expense { color: var(--danger); font-weight: 700; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .view { display: none; } .view.active { display: block; animation: fadeIn 0.4s; }
         .hidden { display: none !important; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay" class="overlay">
     <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary)"></i>
-    <h2 style="margin-top: 24px; font-weight: 600;">Verbindung wird aufgebaut...</h2>
+    <h2 style="margin-top: 20px;">Synchronisiere Cloud...</h2>
 </div>
 
 <div id="login-overlay" class="overlay" style="display:none;">
     <div class="login-card">
-        <div style="background: #f1f5f9; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+        <div style="background: #f1f5f9; width: 60px; height: 60px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
             <i class="fas fa-fingerprint fa-2x" style="color: var(--primary)"></i>
         </div>
-        <h2 style="margin-bottom: 8px;">Willkommen zurück</h2>
-        <p style="color: var(--text-muted); margin-bottom: 32px;">Bitte loggen Sie sich in Ihr Dashboard ein.</p>
+        <h2>VoucherPay Login</h2>
         <input type="text" id="loginUser" placeholder="Benutzername">
         <input type="password" id="loginPass" placeholder="Passwort">
-        <button class="btn-primary" style="width:100%; margin-top: 16px;" onclick="handleLogin()">Dashboard betreten</button>
-        <p id="loginError" style="color:var(--danger); font-size: 0.85rem; margin-top: 16px;"></p>
+        <button class="btn-primary" onclick="handleLogin()">Anmelden</button>
+        <p id="loginError" style="color:var(--danger); margin-top:15px; font-size: 0.9rem;"></p>
     </div>
 </div>
 
 <div class="sidebar">
     <div class="sidebar-header"><i class="fas fa-bolt"></i> VoucherPay</div>
-    <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard"><i class="fas fa-grid-2"></i> Dashboard</div>
+    <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
     <div class="nav-item" onclick="showView('transfer')" id="nav-transfer"><i class="fas fa-paper-plane"></i> Senden</div>
-    <div class="nav-item" onclick="showView('history')" id="nav-history"><i class="fas fa-clock-rotate-left"></i> Verlauf</div>
-    <div class="nav-item admin-only" onclick="showView('accounts')" id="nav-accounts"><i class="fas fa-user-gear"></i> Admin</div>
-    <div class="nav-item" onclick="showView('settings')" id="nav-settings"><i class="fas fa-sliders"></i> Einstellungen</div>
-    <div class="sidebar-footer">
-        <div class="nav-item" onclick="logout()" style="color: var(--danger);"><i class="fas fa-arrow-right-from-bracket"></i> Abmelden</div>
+    <div class="nav-item" onclick="showView('history')" id="nav-history"><i class="fas fa-history"></i> Verlauf</div>
+    <div class="nav-item admin-only" onclick="showView('accounts')" id="nav-accounts"><i class="fas fa-user-shield"></i> Admin Panel</div>
+    <div class="nav-item" onclick="showView('settings')" id="nav-settings"><i class="fas fa-cog"></i> Einstellungen</div>
+    <div style="margin-top: auto;">
+        <div class="nav-item" onclick="logout()" style="color: var(--danger)"><i class="fas fa-sign-out-alt"></i> Abmelden</div>
     </div>
 </div>
 
 <div class="main-content">
     <div class="header-bar">
-        <div>
-            <h1 id="viewTitle" style="font-size: 1.8rem; font-weight: 700;">Dashboard</h1>
-            <p style="color: var(--text-muted);">Willkommen im Finanz-System.</p>
-        </div>
-        <div class="user-profile">
+        <h1 id="viewTitle">Dashboard</h1>
+        <div style="text-align: right">
             <span id="currentUserRoleBadge" class="badge" style="background: #e0e7ff; color: var(--primary);"></span>
-            <strong id="currentUserName">-</strong>
+            <strong id="currentUserName" style="display: block; margin-top: 4px;">-</strong>
         </div>
     </div>
 
     <div id="view-dashboard" class="view active">
         <div class="card balance-card">
-            <p style="font-weight: 500; opacity: 0.9;">Verfügbares Guthaben</p>
-            <h1 id="myBalanceDisplay" style="font-size: 3rem; margin: 8px 0; font-weight: 800;">0.00 §</h1>
+            <p>Verfügbares Guthaben</p>
+            <h1 id="myBalanceDisplay" style="font-size: 3rem; font-weight: 800; margin: 10px 0;">0.00 §</h1>
         </div>
         <div class="card">
-            <h2 style="margin-bottom: 20px;">Meine Gutscheine</h2>
+            <h3>Meine Gutscheine</h3>
             <table id="myVouchersTable">
-                <thead><tr><th>Code</th><th>Status</th></tr></thead>
+                <thead><tr style="text-align:left; font-size:0.8rem; color:var(--text-muted)"><th>CODE</th><th>STATUS</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
 
     <div id="view-transfer" class="view">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="card">
-                <h3>Geld (§) überweisen</h3>
+                <h3>§ Währung senden</h3>
                 <input type="number" id="transferAmount" placeholder="Betrag">
                 <select id="moneyReceiverSelect"></select>
-                <textarea id="moneyMsg" placeholder="Nachricht (optional)"></textarea>
+                <textarea id="moneyMsg" placeholder="Nachricht hinzufügen..."></textarea>
                 <button class="btn-success" onclick="transferMoney()">Geld senden</button>
             </div>
             <div class="card">
-                <h3>Gutschein senden</h3>
+                <h3>Gutschein übertragen</h3>
                 <select id="voucherSelect"></select>
                 <select id="voucherReceiverSelect"></select>
-                <textarea id="voucherMsg" placeholder="Nachricht (optional)"></textarea>
-                <button class="btn-primary" style="width: 100%;" onclick="transferVoucher()">Gutschein senden</button>
+                <textarea id="voucherMsg" placeholder="Nachricht hinzufügen..."></textarea>
+                <button class="btn-primary" onclick="transferVoucher()">Gutschein senden</button>
             </div>
         </div>
     </div>
 
     <div id="view-history" class="view">
         <div class="card">
-            <h2>Transaktionsverlauf</h2>
+            <h3>Transaktionsverlauf</h3>
             <table id="historyTable">
-                <thead><tr><th>Datum</th><th>Partner</th><th>Wert</th><th>Nachricht</th></tr></thead>
+                <thead><tr style="text-align:left; font-size:0.8rem; color:var(--text-muted)"><th>DATUM</th><th>PARTNER</th><th>WERT</th><th>INFO</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -223,19 +154,24 @@
 
     <div id="view-accounts" class="view admin-only">
         <div class="card">
-            <h3>Neuer Nutzer</h3>
-            <div style="display: flex; gap: 12px;">
+            <h3>Nutzerverwaltung & Live-Status</h3>
+            <div style="display:flex; gap:10px; margin-bottom: 20px;">
                 <input type="text" id="newAccName" placeholder="Name">
-                <input type="text" id="newAccPass" placeholder="Passwort">
-                <button class="btn-primary" onclick="addAccount()" style="white-space: nowrap;">Erstellen</button>
+                <input type="text" id="newAccPass" placeholder="PW">
+                <button class="btn-primary" onclick="addAccount()" style="width: auto">Erstellen</button>
             </div>
-        </div>
-        <div class="card">
-            <h3>Benutzerliste</h3>
             <table id="accountTable">
-                <thead><tr><th>Name</th><th>Guthaben</th><th>Status</th><th style="text-align: right;">Aktionen</th></tr></thead>
+                <thead><tr style="text-align:left; font-size:0.8rem; color:var(--text-muted)"><th>STATUS</th><th>NAME</th><th>GUTHABEN</th><th>AKTION</th></tr></thead>
                 <tbody></tbody>
             </table>
+        </div>
+        <div class="card">
+            <h3>Gutschein generieren</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="newVCode" placeholder="Gutscheincode">
+                <select id="initialOwnerSelect"></select>
+                <button class="btn-primary" onclick="createVoucher()" style="width: auto; background: #334155;">Drucken</button>
+            </div>
         </div>
     </div>
 
@@ -245,14 +181,18 @@
             <div style="max-width: 400px;">
                 <input type="text" id="editUserName" placeholder="Neuer Name">
                 <input type="text" id="editUserPass" placeholder="Neues Passwort">
-                <button class="btn-primary" onclick="updateUserData()" style="width: 100%;">Speichern</button>
+                <button class="btn-primary" onclick="updateUserData()">Änderungen speichern</button>
             </div>
+        </div>
+        <div class="card admin-only">
+            <h3>Daten-Backup</h3>
+            <button class="btn-primary" onclick="downloadBackup()" style="background: var(--text-muted); width: auto;"><i class="fas fa-download"></i> Backup exportieren</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Konfiguration - BITTE DEINE DATEN EINSETZEN
+    // --- KONFIGURATION (Bitte ausfüllen) ---
     const SUPABASE_URL = 'https://cilvtkbochcuanmakrgq.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -260,23 +200,29 @@
     let accounts = [], vouchers = [], transactions = [], currentUser = null;
 
     async function fetchCloudData() {
-        try {
-            const { data: acc } = await db.from('accounts').select('*');
-            const { data: vouc } = await db.from('vouchers').select('*');
-            const { data: trans } = await db.from('transactions').select('*').order('created_at', { ascending: false });
-            accounts = acc || []; vouchers = vouc || []; transactions = trans || [];
-            document.getElementById('loading-overlay').style.display = 'none';
-            if(!currentUser) document.getElementById('login-overlay').style.display = 'flex';
-            render();
-        } catch(e) { console.error("Cloud Error"); }
+        const { data: acc } = await db.from('accounts').select('*');
+        const { data: vouc } = await db.from('vouchers').select('*');
+        const { data: trans } = await db.from('transactions').select('*').order('created_at', { ascending: false });
+        accounts = acc || []; vouchers = vouc || []; transactions = trans || [];
+        document.getElementById('loading-overlay').style.display = 'none';
+        if(!currentUser) document.getElementById('login-overlay').style.display = 'flex';
+        render();
     }
 
+    async function sendHeartbeat() {
+        if (currentUser) {
+            await db.from('accounts').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
+        }
+    }
+
+    setInterval(sendHeartbeat, 30000);
+    setInterval(fetchCloudData, 60000);
     window.onload = fetchCloudData;
 
     function handleLogin() {
         const name = document.getElementById('loginUser').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
-        const found = accounts.find(a => a.name === name && a.pass === pass);
+        const found = accounts.find(a => a.name.trim() === name && a.pass.trim() === pass);
         if(found) {
             if(!found.active) return alert("Account pausiert.");
             currentUser = found;
@@ -284,9 +230,10 @@
             document.getElementById('currentUserName').innerText = currentUser.name;
             document.getElementById('currentUserRoleBadge').innerText = currentUser.role.toUpperCase();
             document.querySelectorAll('.admin-only').forEach(e => currentUser.role === 'admin' ? e.classList.remove('hidden') : e.classList.add('hidden'));
+            sendHeartbeat();
             render();
         } else {
-            document.getElementById('loginError').innerText = "Ungültige Anmeldedaten.";
+            document.getElementById('loginError').innerText = "Ungültige Login-Daten!";
         }
     }
 
@@ -296,8 +243,8 @@
         const msg = document.getElementById('moneyMsg').value;
         const receiver = accounts.find(a => a.name === receiverName);
 
-        if(!amount || amount <= 0) return alert("Betrag prüfen!");
-        if(currentUser.role !== 'admin' && currentUser.balance < amount) return alert("Nicht genug Guthaben!");
+        if(!amount || amount <= 0) return alert("Betrag ungültig!");
+        if(currentUser.role !== 'admin' && currentUser.balance < amount) return alert("Guthaben unzureichend!");
 
         if(currentUser.role !== 'admin') await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
         await db.from('accounts').update({ balance: receiver.balance + amount }).eq('name', receiverName);
@@ -317,6 +264,15 @@
         fetchCloudData();
     }
 
+    async function addAccount() {
+        const name = document.getElementById('newAccName').value.trim();
+        const pass = document.getElementById('newAccPass').value.trim();
+        if(name && pass) {
+            await db.from('accounts').insert([{ name, pass, role: 'user', active: true, balance: 100 }]);
+            fetchCloudData();
+        }
+    }
+
     async function toggleStatus(name) {
         if(name === currentUser.name) return;
         const acc = accounts.find(a => a.name === name);
@@ -332,13 +288,29 @@
         }
     }
 
-    async function addAccount() {
-        const name = document.getElementById('newAccName').value.trim();
-        const pass = document.getElementById('newAccPass').value.trim();
-        if(name && pass) {
-            await db.from('accounts').insert([{ name, pass, role: 'user', active: true, balance: 100 }]);
+    async function createVoucher() {
+        const code = document.getElementById('newVCode').value.trim();
+        const owner = document.getElementById('initialOwnerSelect').value;
+        if(code) {
+            await db.from('vouchers').insert([{ code, owner }]);
             fetchCloudData();
         }
+    }
+
+    async function updateUserData() {
+        const name = document.getElementById('editUserName').value.trim();
+        const pass = document.getElementById('editUserPass').value.trim();
+        if(!name || !pass) return;
+        await db.from('accounts').update({ name, pass }).eq('id', currentUser.id);
+        alert("Daten gespeichert! Bitte neu einloggen.");
+        logout();
+    }
+
+    function downloadBackup() {
+        const data = { accounts, vouchers, transactions };
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; a.click();
     }
 
     function showView(id) {
@@ -346,6 +318,7 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('view-' + id).classList.add('active');
         document.getElementById('nav-' + id).classList.add('active');
+        document.getElementById('viewTitle').innerText = document.getElementById('nav-' + id).innerText;
         render();
     }
 
@@ -364,18 +337,25 @@
         document.getElementById('moneyReceiverSelect').innerHTML = opts;
         document.getElementById('voucherReceiverSelect').innerHTML = opts;
         document.getElementById('voucherSelect').innerHTML = myV.map(v => `<option value="${v.code}">${v.code}</option>`).join('');
+        document.getElementById('initialOwnerSelect').innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
 
         document.getElementById('historyTable').querySelector('tbody').innerHTML = transactions.filter(t => t.sender === user.name || t.receiver === user.name).map(t => {
             const isSender = t.sender === user.name;
             const val = t.type === 'money' ? `${t.amount} §` : `Gutschein: ${t.voucher_code}`;
-            return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isSender ? 'An: ' + t.receiver : 'Von: ' + t.sender}</td><td class="${isSender ? 'expense' : 'income'}">${isSender ? '-' : '+'}${val}</td><td style="color: #64748b; font-style: italic;">${t.message || '-'}</td></tr>`;
+            return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isSender ? 'An: ' + t.receiver : 'Von: ' + t.sender}</td><td class="${isSender ? 'expense' : 'income'}">${isSender ? '-' : '+'}${val}</td><td style="color: var(--text-muted); font-style: italic;">${t.message || '-'}</td></tr>`;
         }).join('');
 
         if(user.role === 'admin') {
-            document.getElementById('accountTable').querySelector('tbody').innerHTML = accounts.map(a => `
-                <tr><td><strong>${a.name}</strong></td><td>${a.balance.toFixed(2)} §</td><td><span class="badge ${a.active ? 'badge-active' : 'badge-paused'}">${a.active ? 'Aktiv' : 'Pause'}</span></td>
-                <td style="text-align: right;"><button class="btn-warning btn-action" onclick="toggleStatus('${a.name}')"><i class="fas fa-pause"></i></button> <button class="btn-danger btn-action" onclick="deleteAcc('${a.name}')"><i class="fas fa-trash"></i></button></td></tr>
-            `).join('');
+            const now = new Date();
+            document.getElementById('accountTable').querySelector('tbody').innerHTML = accounts.map(a => {
+                const lastSeen = a.last_seen ? new Date(a.last_seen) : null;
+                const isOnline = lastSeen && (now - lastSeen) < 120000;
+                return `<tr>
+                    <td><span class="status-dot ${isOnline ? 'online' : 'offline'}"></span><span style="font-size:0.7rem">${isOnline ? 'ONLINE' : 'OFFLINE'}</span></td>
+                    <td><strong>${a.name}</strong></td><td>${a.balance.toFixed(2)} §</td>
+                    <td style="text-align: right;"><button class="btn-warning" onclick="toggleStatus('${a.name}')"><i class="fas fa-pause"></i></button> <button class="btn-danger" onclick="deleteAcc('${a.name}')"><i class="fas fa-trash"></i></button></td>
+                </tr>`;
+            }).join('');
         }
     }
 </script>
