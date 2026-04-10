@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay Ultimate | Full & Centered</title>
+    <title>VoucherPay Ultimate | Perfect Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -26,30 +26,33 @@
         .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
         .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 
-        /* Main Content */
+        /* Layout & Cards */
         .main-content { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
         .content-container { width: 100%; max-width: 1000px; } 
-
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; width: 100%; }
-        
         .card { background: #fff; border-radius: var(--radius); padding: 30px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #f1f5f9; width: 100%; }
         .balance-card { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; text-align: center; }
 
-        /* Form & UI */
+        /* Form Elements */
         input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 14px; background: #f8fafc; font-family: inherit; outline: none; }
         button { cursor: pointer; border: none; font-weight: 600; border-radius: 14px; padding: 12px 24px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; justify-content: center; height: 50px; }
         .btn-primary { background: var(--primary); color: white; width: 100%; }
         .btn-success { background: var(--success); color: white; width: 100%; }
-        .btn-danger, .btn-warning { width: 42px; height: 42px; padding: 0; }
 
-        /* Table Design */
+        /* FIX: Kleine Admin Buttons */
+        .admin-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-admin { width: 38px !important; height: 38px !important; padding: 0 !important; border-radius: 10px !important; flex-shrink: 0; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-success-small { background: var(--success); color: white; }
+
+        /* Tables */
         table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        th { text-align: left; padding: 0 15px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
         td { padding: 18px 15px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
         td:first-child { border-left: 1px solid #f1f5f9; border-radius: 15px 0 0 15px; }
         td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 15px 15px 0; }
 
-        /* Badges & Online Dot */
+        /* Status & Badges */
         .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .online { background: var(--success); box-shadow: 0 0 10px var(--success); }
         .offline { background: #cbd5e1; }
@@ -112,24 +115,21 @@
 
         <div id="view-transfer" class="view">
             <div class="card">
-                <h3>Geld (§) senden</h3>
+                <h3>Senden</h3>
                 <input type="number" id="transferAmount" placeholder="Betrag">
                 <select id="moneyReceiverSelect"></select>
-                <textarea id="moneyMsg" placeholder="Nachricht an Empfänger..."></textarea>
+                <textarea id="moneyMsg" placeholder="Nachricht..."></textarea>
                 <button class="btn-success" onclick="transferMoney()">Geld senden</button>
-            </div>
-            <div class="card">
-                <h3>Gutschein übertragen</h3>
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
                 <select id="voucherSelect"></select>
                 <select id="voucherReceiverSelect"></select>
-                <textarea id="voucherMsg" placeholder="Nachricht zum Gutschein..."></textarea>
-                <button class="btn-primary" onclick="transferVoucher()">Gutschein senden</button>
+                <button class="btn-primary" onclick="transferVoucher()">Gutschein übertragen</button>
             </div>
         </div>
 
         <div id="view-history" class="view">
             <div class="card">
-                <h3>Transaktionsverlauf</h3>
+                <h3>Verlauf</h3>
                 <table id="historyTable">
                     <thead><tr><th>Datum</th><th>Partner</th><th>Wert</th><th>Nachricht</th></tr></thead>
                     <tbody></tbody>
@@ -146,14 +146,14 @@
                     <button class="btn-primary" onclick="addAccount()" style="width:auto">Erstellen</button>
                 </div>
                 <table id="accountTable">
-                    <thead><tr><th>Live</th><th>Nutzer</th><th>Status</th><th>Balance</th><th style="text-align:right">Aktion</th></tr></thead>
+                    <thead><tr><th>Live</th><th>Name</th><th>Status</th><th>Balance</th><th style="text-align:right">Aktion</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
             <div class="card">
-                <h3>Gutschein drucken (Code generieren)</h3>
+                <h3>Gutschein-Druck</h3>
                 <div style="display:flex; gap:12px;">
-                    <input type="text" id="newVCode" placeholder="Gutschein-Code">
+                    <input type="text" id="newVCode" placeholder="Code">
                     <select id="initialOwnerSelect"></select>
                     <button class="btn-primary" onclick="createVoucher()" style="width:auto; background:#334155">Drucken</button>
                 </div>
@@ -162,13 +162,13 @@
 
         <div id="view-settings" class="view">
             <div class="card">
-                <h3>Profil bearbeiten</h3>
+                <h3>Einstellungen</h3>
                 <input type="text" id="editUserName" placeholder="Neuer Name">
                 <input type="text" id="editUserPass" placeholder="Neues Passwort">
                 <button class="btn-primary" onclick="updateUserData()">Speichern</button>
             </div>
             <div class="card admin-only">
-                <h3>System Backup</h3>
+                <h3>Backup</h3>
                 <button class="btn-primary" onclick="downloadBackup()" style="background:#64748b; width:auto">Backup herunterladen (.json)</button>
             </div>
         </div>
@@ -198,8 +198,8 @@
         if (currentUser) await db.from('accounts').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
     }
 
-    setInterval(sync, 5000); // Echtzeit Auto-Update
-    setInterval(heartbeat, 30000); // Live-Status Heartbeat
+    setInterval(sync, 5000);
+    setInterval(heartbeat, 30000);
     window.onload = sync;
 
     function handleLogin() {
@@ -207,12 +207,12 @@
         const pass = document.getElementById('loginPass').value.trim();
         const found = accounts.find(a => a.name === name && a.pass === pass);
         if(found) {
-            if(!found.active) return alert("Account ist pausiert.");
+            if(!found.active) return alert("Account pausiert.");
             currentUser = found;
             document.getElementById('login-overlay').style.display = 'none';
             document.querySelectorAll('.admin-only').forEach(e => currentUser.role === 'admin' ? e.classList.remove('hidden') : e.classList.add('hidden'));
             heartbeat(); render();
-        } else { document.getElementById('loginError').innerText = "Daten falsch!"; }
+        } else { document.getElementById('loginError').innerText = "Anmeldung fehlgeschlagen."; }
     }
 
     async function transferMoney() {
@@ -220,7 +220,7 @@
         const receiverName = document.getElementById('moneyReceiverSelect').value;
         const msg = document.getElementById('moneyMsg').value;
         const receiver = accounts.find(a => a.name === receiverName);
-        if(!amount || amount <= 0) return alert("Betrag prüfen!");
+        if(!amount || amount <= 0) return alert("Betrag!");
         if(currentUser.role !== 'admin' && currentUser.balance < amount) return alert("Guthaben!");
         if(currentUser.role !== 'admin') await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
         await db.from('accounts').update({ balance: receiver.balance + amount }).eq('name', receiverName);
@@ -231,10 +231,9 @@
     async function transferVoucher() {
         const code = document.getElementById('voucherSelect').value;
         const receiver = document.getElementById('voucherReceiverSelect').value;
-        const msg = document.getElementById('voucherMsg').value;
         if(!code) return;
         await db.from('vouchers').update({ owner: receiver }).eq('code', code);
-        await db.from('transactions').insert([{ sender: currentUser.name, receiver: receiver, transaction_type: 'voucher', voucher_code: code, message: msg }]);
+        await db.from('transactions').insert([{ sender: currentUser.name, receiver: receiver, transaction_type: 'voucher', voucher_code: code }]);
         sync();
     }
 
@@ -279,21 +278,22 @@
         if(!currentUser) return;
         const user = accounts.find(a => a.id === currentUser.id);
         document.getElementById('myBalanceDisplay').innerText = user.role === 'admin' ? '∞ §' : `${parseFloat(user.balance).toFixed(2)} §`;
-        document.getElementById('userBadge').innerHTML = `<strong>${user.name}</strong><br><span class="badge" style="background:#e0e7ff; color:#4338ca;">${user.role.toUpperCase()}</span>`;
+        document.getElementById('userBadge').innerHTML = `<strong>${user.name}</strong><br><span class="badge" style="background:#e0e7ff">${user.role.toUpperCase()}</span>`;
 
         const myV = vouchers.filter(v => v.owner === user.name);
-        document.getElementById('myVouchersTable').querySelector('tbody').innerHTML = myV.map(v => `<tr><td><code>${v.code}</code></td><td style="text-align:right;"><span class="badge badge-active">VERFÜGBAR</span></td></tr>`).join('');
+        document.getElementById('myVouchersTable').querySelector('tbody').innerHTML = myV.map(v => `<tr><td><code>${v.code}</code></td><td><span class="badge badge-active">AKTIV</span></td></tr>`).join('');
         
         const others = accounts.filter(a => a.name !== user.name && a.active);
-        document.getElementById('moneyReceiverSelect').innerHTML = others.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-        document.getElementById('voucherReceiverSelect').innerHTML = others.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        const opts = others.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        document.getElementById('moneyReceiverSelect').innerHTML = opts;
+        document.getElementById('voucherReceiverSelect').innerHTML = opts;
         document.getElementById('voucherSelect').innerHTML = myV.map(v => `<option value="${v.code}">${v.code}</option>`).join('');
         document.getElementById('initialOwnerSelect').innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
 
         document.getElementById('historyTable').querySelector('tbody').innerHTML = transactions.filter(t => t.sender === user.name || t.receiver === user.name).map(t => {
             const isS = t.sender === user.name;
             const val = t.transaction_type === 'money' ? `${parseFloat(t.amount).toFixed(2)} §` : `🎟 ${t.voucher_code}`;
-            return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td><td class="${isS?'expense':'income'}">${isS?'-':'+'}${val}</td><td style="color:gray; font-style:italic;">${t.message||'-'}</td></tr>`;
+            return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td><td style="color:${isS?'var(--danger)':'var(--success)'}; font-weight:700">${isS?'-':'+'}${val}</td><td>${t.message||'-'}</td></tr>`;
         }).join('');
 
         if(user.role === 'admin') {
@@ -306,8 +306,10 @@
                     <td><span class="badge ${a.active?'badge-active':'badge-paused'}">${a.active?'AKTIV':'PAUSE'}</span></td>
                     <td>${parseFloat(a.balance).toFixed(2)} §</td>
                     <td style="text-align:right">
-                        <button class="${a.active?'btn-warning':'btn-success'}" onclick="toggleStatus('${a.name}')"><i class="fas ${a.active?'fa-pause':'fa-play'}"></i></button>
-                        <button class="btn-danger" onclick="deleteAcc('${a.name}')"><i class="fas fa-trash"></i></button>
+                        <div class="admin-actions">
+                            <button class="${a.active?'btn-warning':'btn-success-small'} btn-admin" onclick="toggleStatus('${a.name}')"><i class="fas ${a.active?'fa-pause':'fa-play'}"></i></button>
+                            <button class="btn-danger btn-admin" onclick="deleteAcc('${a.name}')"><i class="fas fa-trash"></i></button>
+                        </div>
                     </td>
                 </tr>`;
             }).join('');
