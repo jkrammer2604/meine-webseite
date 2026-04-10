@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay Ultimate | Full Centered Design</title>
+    <title>VoucherPay Ultimate | Clean Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -94,7 +94,6 @@
     <div class="nav-item" onclick="showView('transfer')" id="nav-transfer"><i class="fas fa-paper-plane"></i> Senden</div>
     <div class="nav-item" onclick="showView('history')" id="nav-history"><i class="fas fa-history"></i> Verlauf</div>
     <div class="nav-item admin-only" onclick="showView('accounts')" id="nav-accounts"><i class="fas fa-user-shield"></i> Admin Panel</div>
-    <div class="nav-item" onclick="showView('settings')" id="nav-settings"><i class="fas fa-cog"></i> Einstellungen</div>
     <div class="sidebar-footer">
         <div class="nav-item" onclick="logout()" style="color: var(--danger)"><i class="fas fa-sign-out-alt"></i> Abmelden</div>
     </div>
@@ -167,26 +166,10 @@
                 </div>
             </div>
         </div>
-
-        <div id="view-settings" class="view">
-            <div class="card" style="text-align: center;">
-                <h3>Einstellungen</h3>
-                <div style="max-width: 400px; margin: 0 auto;">
-                    <input type="text" id="editUserName" placeholder="Neuer Name">
-                    <input type="text" id="editUserPass" placeholder="Neues Passwort">
-                    <button class="btn-primary" onclick="updateUserData()">Speichern</button>
-                </div>
-            </div>
-            <div class="card admin-only" style="text-align: center;">
-                <h3>Backup</h3>
-                <button class="btn-primary" onclick="downloadBackup()" style="background:#64748b; width:auto">Backup herunterladen (.json)</button>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
-    // --- SUPABASE KONFIGURATION ---
     const SUPABASE_URL = 'https://cilvtkbochcuanmakrgq.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -272,19 +255,6 @@
         if(code) { await db.from('vouchers').insert([{ code, owner }]); sync(); }
     }
 
-    async function updateUserData() {
-        const name = document.getElementById('editUserName').value.trim();
-        const pass = document.getElementById('editUserPass').value.trim();
-        if(name && pass) { await db.from('accounts').update({ name, pass }).eq('id', currentUser.id); location.reload(); }
-    }
-
-    function downloadBackup() {
-        const data = JSON.stringify({ accounts, vouchers, transactions });
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; a.click();
-    }
-
     function render() {
         if(!currentUser) return;
         const user = accounts.find(a => a.id === currentUser.id);
@@ -316,7 +286,7 @@
                     <td><strong>${a.name}</strong></td>
                     <td><span class="badge ${a.active?'badge-active':'badge-paused'}">${a.active?'AKTIV':'PAUSE'}</span></td>
                     <td>${parseFloat(a.balance).toFixed(2)} §</td>
-                    <td>
+                    <td style="text-align:right">
                         <div class="admin-actions">
                             <button class="${a.active?'btn-warning':'btn-success-small'} btn-admin" onclick="toggleStatus('${a.name}')"><i class="fas ${a.active?'fa-pause':'fa-play'}"></i></button>
                             <button class="btn-danger btn-admin" onclick="deleteAcc('${a.name}')"><i class="fas fa-trash"></i></button>
