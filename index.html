@@ -3,295 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay | Clean Edition</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>VoucherPay Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         
         :root {
-            --sidebar-width: 280px; --primary: #6366f1; --primary-dark: #4f46e5;
-            --bg-body: #f8fafc; --bg-card: #ffffff; --text-main: #0f172a;
-            --text-muted: #64748b; --success: #10b981; --danger: #ef4444;
-            --warning: #f59e0b; --radius: 20px;
+            --p: #6366f1; --p-dark: #4f46e5; --bg: #f8fafc;
+            --card: #ffffff; --txt: #0f172a; --txt-m: #64748b;
+            --success: #10b981; --danger: #ef4444; --radius: 18px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--txt); display: flex; height: 100vh; overflow: hidden; }
 
         /* Sidebar */
-        .sidebar { width: var(--sidebar-width); background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; padding: 32px 20px; flex-shrink: 0; }
-        .sidebar-header { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 12px; margin-bottom: 40px; justify-content: center; }
-        .nav-item { padding: 14px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: var(--text-muted); font-weight: 500; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
-        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+        .sidebar { width: 280px; background: #fff; border-right: 1px solid #e2e8f0; padding: 35px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--p); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 14px 18px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; color: var(--txt-m); font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: var(--p); color: #fff; }
 
-        /* Main Content */
-        .main-content { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
-        .content-container { width: 100%; max-width: 1000px; } 
-
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; width: 100%; }
+        /* Main Area */
+        .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 900px; }
         
-        .card { background: #fff; border-radius: var(--radius); padding: 30px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #f1f5f9; width: 100%; }
-        .balance-card { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; text-align: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card { background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid #f1f5f9; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .balance-card { background: linear-gradient(135deg, var(--p), #a855f7); color: #fff; border: none; text-align: center; }
 
-        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 14px; background: #f8fafc; font-family: inherit; outline: none; text-align: center; }
-        
-        button { cursor: pointer; border: none; font-weight: 600; border-radius: 14px; padding: 12px 24px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; justify-content: center; height: 50px; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-success { background: var(--success); color: white; width: 100%; }
-        .btn-danger { background: var(--danger); color: white; }
+        /* Forms */
+        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; background: #fdfdfd; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--p); color: #fff; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        button:hover { background: var(--p-dark); transform: translateY(-1px); }
+        .btn-sec { background: var(--success); }
 
-        table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        th { text-align: center; padding: 0 15px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-        td { padding: 18px 15px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; font-size: 14px; text-align: center; vertical-align: middle; }
-        td:first-child { border-left: 1px solid #f1f5f9; border-radius: 15px 0 0 15px; }
-        td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 15px 15px 0; }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; font-size: 12px; color: var(--txt-m); text-transform: uppercase; padding: 10px; }
+        td { padding: 15px 10px; border-top: 1px solid #f1f5f9; font-size: 14px; }
 
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; color: white; }
-        .view { display: none; width: 100%; } .view.active { display: block; animation: fadeIn 0.4s; }
+        /* States */
+        .overlay { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
         .hidden { display: none !important; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay" class="overlay">
-    <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary)"></i>
-    <h2 style="margin-top: 25px;">Daten synchronisieren...</h2>
-</div>
-
-<div id="login-overlay" class="overlay" style="display:none;">
-    <div style="background: white; padding: 50px; border-radius: 30px; width: 100%; max-width: 400px; text-align: center; color: #0f172a;">
-        <h2 style="margin-bottom: 30px;">VoucherPay Login</h2>
-        <input type="text" id="loginUser" placeholder="Benutzername">
-        <input type="password" id="loginPass" placeholder="Passwort">
-        <button class="btn-primary" onclick="handleLogin()">Anmelden</button>
-        <p id="loginError" style="color:red; margin-top:15px; font-size:13px;"></p>
+<div id="login-screen" class="overlay">
+    <div style="background:#fff; padding:45px; border-radius:25px; width:100%; max-width:400px; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+        <h2 style="text-align:center; margin-bottom:30px;">VoucherPay Login</h2>
+        <input type="text" id="lUser" placeholder="Benutzername">
+        <input type="password" id="lPass" placeholder="Passwort">
+        <button onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Anmelden</button>
+        <p id="lErr" style="color:var(--danger); text-align:center; margin-top:15px; font-size:13px;"></p>
     </div>
 </div>
 
 <div class="sidebar">
-    <div class="sidebar-header"><i class="fas fa-bolt"></i> VoucherPay</div>
-    <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard"><i class="fas fa-house"></i> Dashboard</div>
-    <div class="nav-item" onclick="showView('transfer')" id="nav-transfer"><i class="fas fa-paper-plane"></i> Senden</div>
-    <div class="nav-item" onclick="showView('history')" id="nav-history"><i class="fas fa-history"></i> Verlauf</div>
-    <div class="nav-item admin-only" onclick="showView('accounts')" id="nav-accounts"><i class="fas fa-user-shield"></i> Admin Panel</div>
-    <div class="sidebar-footer">
-        <div class="nav-item" onclick="logout()" style="color: var(--danger)"><i class="fas fa-sign-out-alt"></i> Abmelden</div>
-    </div>
+    <div class="logo"><i class="fas fa-bolt"></i> VoucherPay</div>
+    <div class="nav-item active" onclick="showView('dash')" id="n-dash"><i class="fas fa-th-large"></i> Dashboard</div>
+    <div class="nav-item" onclick="showView('send')" id="n-send"><i class="fas fa-paper-plane"></i> Senden</div>
+    <div class="nav-item" onclick="showView('hist')" id="n-hist"><i class="fas fa-history"></i> Verlauf</div>
+    <div class="nav-item admin-only hidden" onclick="showView('admin')" id="n-admin"><i class="fas fa-user-shield"></i> Admin Panel</div>
+    <button onclick="location.reload()" style="margin-top:auto; background:#fee2e2; color:#b91c1c;"><i class="fas fa-power-off"></i> Logout</button>
 </div>
 
-<div class="main-content">
-    <div class="content-container">
-        <div class="header-bar">
-            <h1 id="viewTitle">Dashboard</h1>
-            <div id="userBadge"></div>
+<div class="main">
+    <div class="container">
+        <div class="header">
+            <h1 id="view-title">Dashboard</h1>
+            <div id="user-info" style="text-align:right; font-weight:600;"></div>
         </div>
 
-        <div id="view-dashboard" class="view active">
+        <div id="v-dash" class="view active">
             <div class="card balance-card">
-                <p style="opacity: 0.8;">Verfügbares Guthaben</p>
-                <h1 id="myBalanceDisplay" style="font-size: 3.5rem; font-weight: 800;">0.00 §</h1>
+                <p style="opacity:0.9;">Aktuelles Guthaben</p>
+                <h1 id="balance-display" style="font-size:3.5rem; font-weight:800; margin:10px 0;">0.00 §</h1>
             </div>
 
             <div class="card">
                 <h3>Gutschein einlösen</h3>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="redeemCode" placeholder="Gutscheincode eingeben..." style="margin:0;">
-                    <button class="btn-success" onclick="redeemVoucher()" style="width:auto;">Einlösen</button>
+                <div style="display:flex; gap:12px; margin-top:15px;">
+                    <input type="text" id="redeem-input" placeholder="Code hier eingeben..." style="margin:0;">
+                    <button class="btn-sec" onclick="redeemVoucher()" style="width:140px;">Einlösen</button>
                 </div>
-                <p id="redeemStatus" style="font-size: 13px; margin-top: 12px; text-align: center; font-weight: 600;"></p>
+                <p id="redeem-msg" style="margin-top:12px; font-size:13px; font-weight:600; text-align:center;"></p>
             </div>
 
             <div class="card">
-                <h3 style="margin-bottom: 15px; text-align: center;">Meine Gutscheine</h3>
-                <table id="myVouchersTable">
+                <h3>Meine Gutscheine</h3>
+                <table id="my-vouchers-table">
                     <thead><tr><th>Code</th><th>Wert</th><th>Status</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="view-transfer" class="view">
+        <div id="v-send" class="view">
             <div class="card">
-                <h3>Geld an Nutzer senden</h3>
-                <input type="number" id="transferAmount" placeholder="Betrag (§)">
-                <select id="moneyReceiverSelect"></select>
-                <textarea id="moneyMsg" placeholder="Nachricht hinzufügen (optional)..."></textarea>
-                <button class="btn-success" onclick="transferMoney()">Jetzt senden</button>
+                <h3>Geld überweisen</h3>
+                <input type="number" id="send-amount" placeholder="Betrag in §">
+                <select id="send-receiver"></select>
+                <textarea id="send-msg" placeholder="Nachricht (optional)"></textarea>
+                <button onclick="sendMoney()"><i class="fas fa-check-circle"></i> Jetzt senden</button>
             </div>
         </div>
 
-        <div id="view-history" class="view">
+        <div id="v-hist" class="view">
             <div class="card">
                 <h3>Transaktionsverlauf</h3>
-                <table id="historyTable">
+                <table id="history-table">
                     <thead><tr><th>Datum</th><th>Partner</th><th>Betrag</th><th>Info</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="view-accounts" class="view admin-only">
+        <div id="v-admin" class="view">
             <div class="card">
-                <h3 style="color: var(--primary); margin-bottom: 15px;">Gutschein-Drucker</h3>
-                <div style="display:flex; gap:12px;">
-                    <input type="text" id="newVCode" placeholder="Eindeutiger Code">
-                    <input type="number" id="newVValue" placeholder="Wert (§)" style="max-width: 120px;">
-                    <select id="initialOwnerSelect"></select>
-                    <button class="btn-primary" onclick="createVoucher()" style="width:auto; background: #334155;">Drucken</button>
+                <h3 style="color:var(--p);">Gutschein erstellen</h3>
+                <div style="display:grid; grid-template-columns: 1fr 100px; gap:10px;">
+                    <input type="text" id="adm-v-code" placeholder="Eindeutiger Code">
+                    <input type="number" id="adm-v-val" placeholder="Wert">
                 </div>
+                <select id="adm-v-owner"></select>
+                <button onclick="adminCreateVoucher()"><i class="fas fa-plus"></i> Gutschein generieren</button>
             </div>
+            
             <div class="card">
-                <h3>Nutzerverwaltung</h3>
-                <table id="accountTable">
-                    <thead><tr><th>Name</th><th>Kontostand</th><th>Rolle</th></tr></thead>
+                <h3>Alle Nutzer</h3>
+                <table id="admin-users-table">
+                    <thead><tr><th>Nutzer</th><th>Guthaben</th><th>Rolle</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://cilvtkbochcuanmakrgq.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Supabase Konfiguration
+    const SB_URL = 'https://cilvtkbochcuanmakrgq.supabase.co';
+    const SB_KEY = 'sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd';
+    const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-    let accounts = [], vouchers = [], transactions = [], currentUser = null;
+    let currentUser = null, accounts = [], vouchers = [], transactions = [];
 
+    // Daten-Synchronisierung
     async function sync() {
-        const { data: acc } = await db.from('accounts').select('*');
-        const { data: vouc } = await db.from('vouchers').select('*');
-        const { data: trans } = await db.from('transactions').select('*').order('created_at', { ascending: false });
+        const { data: a } = await sb.from('accounts').select('*');
+        const { data: v } = await sb.from('vouchers').select('*');
+        const { data: t } = await sb.from('transactions').select('*').order('created_at', { ascending: false });
         
-        accounts = acc || []; vouchers = vouc || []; transactions = trans || [];
-        render();
-        document.getElementById('loading-overlay').style.display = 'none';
-        if(!currentUser) document.getElementById('login-overlay').style.display = 'flex';
-    }
-
-    function handleLogin() {
-        const name = document.getElementById('loginUser').value.trim();
-        const pass = document.getElementById('loginPass').value.trim();
-        const found = accounts.find(a => a.name === name && a.pass === pass);
-        if(found) {
-            currentUser = found;
-            document.getElementById('login-overlay').style.display = 'none';
-            document.querySelectorAll('.admin-only').forEach(e => currentUser.role === 'admin' ? e.classList.remove('hidden') : e.classList.add('hidden'));
+        accounts = a || []; vouchers = v || []; transactions = t || [];
+        
+        if (currentUser) {
+            currentUser = accounts.find(acc => acc.id === currentUser.id);
             render();
-        } else { document.getElementById('loginError').innerText = "Ungültiger Name oder Passwort."; }
+        }
     }
 
-    async function redeemVoucher() {
-        const codeInput = document.getElementById('redeemCode');
-        const status = document.getElementById('redeemStatus');
-        const code = codeInput.value.trim();
-        if(!code) return;
+    // Login Logik
+    async function handleLogin() {
+        await sync();
+        const n = document.getElementById('lUser').value.trim();
+        const p = document.getElementById('lPass').value.trim();
+        const found = accounts.find(acc => acc.name === n && acc.pass === p);
 
-        const voucher = vouchers.find(v => v.code === code);
-        
-        if(!voucher) {
-            status.innerText = "❌ Code existiert nicht oder wurde bereits eingelöst.";
-            status.style.color = "var(--danger)";
+        if (found) {
+            currentUser = found;
+            document.getElementById('login-screen').style.display = 'none';
+            if (currentUser.role === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
+            render();
+        } else {
+            document.getElementById('lErr').innerText = "Benutzername oder Passwort falsch.";
+        }
+    }
+
+    // Gutschein Einlösen
+    async function redeemVoucher() {
+        const inp = document.getElementById('redeem-input');
+        const msg = document.getElementById('redeem-msg');
+        const code = inp.value.trim();
+        const voc = vouchers.find(v => v.code === code);
+
+        if (!voc) {
+            msg.innerText = "❌ Ungültiger oder bereits benutzter Code.";
+            msg.style.color = "var(--danger)";
             return;
         }
 
-        const value = parseFloat(voucher.value) || 0;
+        const val = parseFloat(voc.value);
+        const { error } = await sb.from('accounts').update({ balance: currentUser.balance + val }).eq('id', currentUser.id);
 
-        // Balance updaten
-        const { error } = await db.from('accounts').update({ balance: currentUser.balance + value }).eq('id', currentUser.id);
-
-        if(!error) {
-            // Gutschein entfernen
-            await db.from('vouchers').delete().eq('code', code);
-            // In Historie loggen
-            await db.from('transactions').insert([{ 
-                sender: 'GUTSCHEIN', 
-                receiver: currentUser.name, 
-                amount: value, 
-                transaction_type: 'money', 
-                message: `Code: ${code}` 
-            }]);
-            
-            status.innerText = `✅ Erfolg! +${value.toFixed(2)} § gutgeschrieben.`;
-            status.style.color = "var(--success)";
-            codeInput.value = "";
+        if (!error) {
+            await sb.from('vouchers').delete().eq('code', code);
+            await sb.from('transactions').insert([{ sender: 'SYSTEM', receiver: currentUser.name, amount: val, message: `Gutschein: ${code}` }]);
+            msg.innerText = `✅ Erfolg! +${val.toFixed(2)} § erhalten.`;
+            msg.style.color = "var(--success)";
+            inp.value = "";
             sync();
         }
     }
 
-    async function createVoucher() {
-        const codeInput = document.getElementById('newVCode');
-        const valInput = document.getElementById('newVValue');
-        const code = codeInput.value.trim();
-        const val = parseFloat(valInput.value);
-        const owner = document.getElementById('initialOwnerSelect').value;
+    // Geld senden
+    async function sendMoney() {
+        const amt = parseFloat(document.getElementById('send-amount').value);
+        const recName = document.getElementById('send-receiver').value;
+        const msg = document.getElementById('send-msg').value;
+        const recAcc = accounts.find(a => a.name === recName);
 
-        if(!code || isNaN(val) || val <= 0) {
-            alert("Code und Wert eingeben!"); return;
+        if (isNaN(amt) || amt <= 0) return alert("Ungültiger Betrag");
+        if (currentUser.balance < amt && currentUser.role !== 'admin') return alert("Guthaben reicht nicht!");
+
+        if (currentUser.role !== 'admin') {
+            await sb.from('accounts').update({ balance: currentUser.balance - amt }).eq('id', currentUser.id);
         }
-
-        const { error } = await db.from('vouchers').insert([{ code, value: val, owner }]);
-
-        if(error) {
-            if(error.code === "23505") alert("❌ Dieser Code existiert bereits!");
-            else alert("Fehler: " + error.message);
-        } else {
-            alert("✅ Gutschein erstellt!");
-            codeInput.value = ""; valInput.value = "";
-            sync();
-        }
-    }
-
-    async function transferMoney() {
-        const amount = parseFloat(document.getElementById('transferAmount').value);
-        const receiverName = document.getElementById('moneyReceiverSelect').value;
-        const msg = document.getElementById('moneyMsg').value;
-        const receiver = accounts.find(a => a.name === receiverName);
-
-        if(isNaN(amount) || amount <= 0) return alert("Betrag eingeben!");
-        if(currentUser.balance < amount && currentUser.role !== 'admin') return alert("Guthaben reicht nicht!");
-
-        if(currentUser.role !== 'admin') {
-            await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
-        }
-        await db.from('accounts').update({ balance: receiver.balance + amount }).eq('name', receiverName);
-        await db.from('transactions').insert([{ sender: currentUser.name, receiver: receiverName, amount, transaction_type: 'money', message: msg }]);
+        await sb.from('accounts').update({ balance: recAcc.balance + amt }).eq('id', recAcc.id);
+        await sb.from('transactions').insert([{ sender: currentUser.name, receiver: recName, amount: amt, message: msg }]);
         
-        alert("Geld erfolgreich gesendet!");
-        document.getElementById('transferAmount').value = "";
+        alert("Erfolgreich gesendet!");
+        document.getElementById('send-amount').value = "";
         sync();
     }
 
-    function render() {
-        if(!currentUser) return;
-        const user = accounts.find(a => a.id === currentUser.id);
-        currentUser = user; 
-        
-        document.getElementById('myBalanceDisplay').innerText = user.role === 'admin' ? '∞ §' : `${parseFloat(user.balance).toFixed(2)} §`;
-        document.getElementById('userBadge').innerHTML = `<strong>${user.name}</strong> <span style="font-size:10px; background:#ddd; padding:2px 6px; border-radius:5px;">${user.role.toUpperCase()}</span>`;
+    // Admin: Gutschein erstellen
+    async function adminCreateVoucher() {
+        const c = document.getElementById('adm-v-code').value.trim();
+        const v = parseFloat(document.getElementById('adm-v-val').value);
+        const o = document.getElementById('adm-v-owner').value;
 
-        const myV = vouchers.filter(v => v.owner === user.name);
-        document.getElementById('myVouchersTable').querySelector('tbody').innerHTML = myV.map(v => `
-            <tr><td><code>${v.code}</code></td><td>${v.value} §</td><td><span style="color:green; font-weight:bold;">BEREIT</span></td></tr>
+        if (!c || isNaN(v)) return alert("Bitte alle Felder füllen!");
+
+        const { error } = await sb.from('vouchers').insert([{ code: c, value: v, owner: o }]);
+        if (error) alert("Fehler: Code existiert wahrscheinlich schon.");
+        else {
+            alert("Gutschein erstellt!");
+            document.getElementById('adm-v-code').value = "";
+            sync();
+        }
+    }
+
+    // UI Rendering
+    function render() {
+        if (!currentUser) return;
+
+        // Dashboard & User Info
+        document.getElementById('balance-display').innerText = currentUser.role === 'admin' ? '∞ §' : `${currentUser.balance.toFixed(2)} §`;
+        document.getElementById('user-info').innerText = `${currentUser.name} (${currentUser.role})`;
+
+        // Eigene Gutscheine Tabelle
+        const myV = vouchers.filter(v => v.owner === currentUser.name);
+        document.getElementById('my-vouchers-table').querySelector('tbody').innerHTML = myV.map(v => `
+            <tr><td><code>${v.code}</code></td><td>${v.value} §</td><td><span style="color:var(--success)">AKTIV</span></td></tr>
         `).join('');
 
-        const others = accounts.filter(a => a.name !== user.name);
-        document.getElementById('moneyReceiverSelect').innerHTML = others.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-        document.getElementById('initialOwnerSelect').innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        // Select-Listen füllen
+        const otherUsers = accounts.filter(a => a.id !== currentUser.id);
+        const userOpts = otherUsers.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        const allUserOpts = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        document.getElementById('send-receiver').innerHTML = userOpts;
+        document.getElementById('adm-v-owner').innerHTML = allUserOpts;
 
-        document.getElementById('historyTable').querySelector('tbody').innerHTML = transactions
-            .filter(t => t.sender === user.name || t.receiver === user.name)
-            .map(t => {
-                const isS = t.sender === user.name;
-                return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td><td style="color:${isS?'var(--danger)':'var(--success)'}; font-weight:700">${isS?'-':'+'}${t.amount} §</td><td>${t.message||'-'}</td></tr>`;
-            }).join('');
+        // Verlauf Tabelle
+        const myT = transactions.filter(t => t.sender === currentUser.name || t.receiver === currentUser.name);
+        document.getElementById('history-table').querySelector('tbody').innerHTML = myT.map(t => {
+            const isS = t.sender === currentUser.name;
+            return `<tr>
+                <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                <td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td>
+                <td style="color:${isS ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">${isS?'-':'+'}${t.amount} §</td>
+                <td>${t.message || '-'}</td>
+            </tr>`;
+        }).join('');
 
-        if(user.role === 'admin') {
-            document.getElementById('accountTable').querySelector('tbody').innerHTML = accounts.map(a => `
-                <tr><td><strong>${a.name}</strong></td><td>${a.balance} §</td><td>${a.role}</td></tr>
+        // Admin Nutzer Tabelle
+        if (currentUser.role === 'admin') {
+            document.getElementById('admin-users-table').querySelector('tbody').innerHTML = accounts.map(a => `
+                <tr><td><strong>${a.name}</strong></td><td>${a.balance.toFixed(2)} §</td><td>${a.role}</td></tr>
             `).join('');
         }
     }
@@ -299,13 +293,13 @@
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('view-' + id).classList.add('active');
-        document.getElementById('nav-' + id).classList.add('active');
-        document.getElementById('viewTitle').innerText = document.getElementById('nav-' + id).innerText;
+        document.getElementById('v-' + id).classList.add('active');
+        document.getElementById('n-' + id).classList.add('active');
+        document.getElementById('view-title').innerText = document.getElementById('n-' + id).innerText;
     }
 
-    function logout() { location.reload(); }
-    setInterval(sync, 15000); 
+    // Init
+    setInterval(sync, 10000);
     window.onload = sync;
 </script>
 </body>
