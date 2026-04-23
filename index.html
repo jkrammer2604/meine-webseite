@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay Ultimate | Voucher Edition</title>
+    <title>VoucherPay | Clean Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -42,7 +42,6 @@
         .btn-success { background: var(--success); color: white; width: 100%; }
         .btn-danger { background: var(--danger); color: white; }
 
-        /* Tabellen */
         table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
         th { text-align: center; padding: 0 15px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
         td { padding: 18px 15px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; font-size: 14px; text-align: center; vertical-align: middle; }
@@ -59,7 +58,7 @@
 
 <div id="loading-overlay" class="overlay">
     <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary)"></i>
-    <h2 style="margin-top: 25px;">Daten werden geladen...</h2>
+    <h2 style="margin-top: 25px;">Daten synchronisieren...</h2>
 </div>
 
 <div id="login-overlay" class="overlay" style="display:none;">
@@ -92,21 +91,21 @@
 
         <div id="view-dashboard" class="view active">
             <div class="card balance-card">
-                <p>Kontostand</p>
-                <h1 id="myBalanceDisplay" style="font-size: 3.5rem;">0.00 §</h1>
+                <p style="opacity: 0.8;">Verfügbares Guthaben</p>
+                <h1 id="myBalanceDisplay" style="font-size: 3.5rem; font-weight: 800;">0.00 §</h1>
             </div>
 
             <div class="card">
                 <h3>Gutschein einlösen</h3>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="redeemCode" placeholder="Code eingeben..." style="margin:0;">
+                    <input type="text" id="redeemCode" placeholder="Gutscheincode eingeben..." style="margin:0;">
                     <button class="btn-success" onclick="redeemVoucher()" style="width:auto;">Einlösen</button>
                 </div>
-                <p id="redeemStatus" style="font-size: 13px; margin-top: 10px; text-align: center;"></p>
+                <p id="redeemStatus" style="font-size: 13px; margin-top: 12px; text-align: center; font-weight: 600;"></p>
             </div>
 
             <div class="card">
-                <h3 style="text-align: center;">Meine Gutscheine</h3>
+                <h3 style="margin-bottom: 15px; text-align: center;">Meine Gutscheine</h3>
                 <table id="myVouchersTable">
                     <thead><tr><th>Code</th><th>Wert</th><th>Status</th></tr></thead>
                     <tbody></tbody>
@@ -116,11 +115,11 @@
 
         <div id="view-transfer" class="view">
             <div class="card">
-                <h3>Geld senden</h3>
-                <input type="number" id="transferAmount" placeholder="Betrag">
+                <h3>Geld an Nutzer senden</h3>
+                <input type="number" id="transferAmount" placeholder="Betrag (§)">
                 <select id="moneyReceiverSelect"></select>
-                <textarea id="moneyMsg" placeholder="Nachricht..."></textarea>
-                <button class="btn-success" onclick="transferMoney()">Senden</button>
+                <textarea id="moneyMsg" placeholder="Nachricht hinzufügen (optional)..."></textarea>
+                <button class="btn-success" onclick="transferMoney()">Jetzt senden</button>
             </div>
         </div>
 
@@ -128,7 +127,7 @@
             <div class="card">
                 <h3>Transaktionsverlauf</h3>
                 <table id="historyTable">
-                    <thead><tr><th>Datum</th><th>Partner</th><th>Wert</th><th>Info</th></tr></thead>
+                    <thead><tr><th>Datum</th><th>Partner</th><th>Betrag</th><th>Info</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -136,18 +135,18 @@
 
         <div id="view-accounts" class="view admin-only">
             <div class="card">
-                <h3>Gutschein erstellen (Admin)</h3>
+                <h3 style="color: var(--primary); margin-bottom: 15px;">Gutschein-Drucker</h3>
                 <div style="display:flex; gap:12px;">
-                    <input type="text" id="newVCode" placeholder="Code">
+                    <input type="text" id="newVCode" placeholder="Eindeutiger Code">
                     <input type="number" id="newVValue" placeholder="Wert (§)" style="max-width: 120px;">
                     <select id="initialOwnerSelect"></select>
-                    <button class="btn-primary" onclick="createVoucher()" style="width:auto;">Erstellen</button>
+                    <button class="btn-primary" onclick="createVoucher()" style="width:auto; background: #334155;">Drucken</button>
                 </div>
             </div>
             <div class="card">
                 <h3>Nutzerverwaltung</h3>
                 <table id="accountTable">
-                    <thead><tr><th>Nutzer</th><th>Balance</th><th>Aktionen</th></tr></thead>
+                    <thead><tr><th>Name</th><th>Kontostand</th><th>Rolle</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -182,44 +181,66 @@
             document.getElementById('login-overlay').style.display = 'none';
             document.querySelectorAll('.admin-only').forEach(e => currentUser.role === 'admin' ? e.classList.remove('hidden') : e.classList.add('hidden'));
             render();
-        } else { document.getElementById('loginError').innerText = "Anmeldedaten falsch."; }
+        } else { document.getElementById('loginError').innerText = "Ungültiger Name oder Passwort."; }
     }
 
     async function redeemVoucher() {
-        const code = document.getElementById('redeemCode').value.trim();
+        const codeInput = document.getElementById('redeemCode');
         const status = document.getElementById('redeemStatus');
+        const code = codeInput.value.trim();
         if(!code) return;
 
-        // 1. Suche Gutschein
         const voucher = vouchers.find(v => v.code === code);
+        
         if(!voucher) {
-            status.innerText = "❌ Ungültiger Code."; status.style.color = "red";
+            status.innerText = "❌ Code existiert nicht oder wurde bereits eingelöst.";
+            status.style.color = "var(--danger)";
             return;
         }
 
         const value = parseFloat(voucher.value) || 0;
 
-        // 2. Kontostand updaten
+        // Balance updaten
         const { error } = await db.from('accounts').update({ balance: currentUser.balance + value }).eq('id', currentUser.id);
 
         if(!error) {
-            // 3. Gutschein löschen & Loggen
+            // Gutschein entfernen
             await db.from('vouchers').delete().eq('code', code);
-            await db.from('transactions').insert([{ sender: 'SYSTEM', receiver: currentUser.name, amount: value, transaction_type: 'money', message: `Gutschein eingelöst: ${code}` }]);
+            // In Historie loggen
+            await db.from('transactions').insert([{ 
+                sender: 'GUTSCHEIN', 
+                receiver: currentUser.name, 
+                amount: value, 
+                transaction_type: 'money', 
+                message: `Code: ${code}` 
+            }]);
             
-            status.innerText = `✅ Erfolg! ${value.toFixed(2)} § erhalten.`;
-            status.style.color = "green";
-            document.getElementById('redeemCode').value = "";
+            status.innerText = `✅ Erfolg! +${value.toFixed(2)} § gutgeschrieben.`;
+            status.style.color = "var(--success)";
+            codeInput.value = "";
             sync();
         }
     }
 
     async function createVoucher() {
-        const code = document.getElementById('newVCode').value.trim();
-        const val = parseFloat(document.getElementById('newVValue').value);
+        const codeInput = document.getElementById('newVCode');
+        const valInput = document.getElementById('newVValue');
+        const code = codeInput.value.trim();
+        const val = parseFloat(valInput.value);
         const owner = document.getElementById('initialOwnerSelect').value;
-        if(code && val > 0) {
-            await db.from('vouchers').insert([{ code, value: val, owner }]);
+
+        if(!code || isNaN(val) || val <= 0) {
+            alert("Code und Wert eingeben!"); return;
+        }
+
+        const { error } = await db.from('vouchers').insert([{ code, value: val, owner }]);
+
+        if(error) {
+            if(error.code === "23505") alert("❌ Dieser Code existiert bereits!");
+            else alert("Fehler: " + error.message);
+        } else {
+            alert("✅ Gutschein erstellt!");
+            codeInput.value = ""; valInput.value = "";
             sync();
         }
     }
@@ -230,45 +251,47 @@
         const msg = document.getElementById('moneyMsg').value;
         const receiver = accounts.find(a => a.name === receiverName);
 
-        if(currentUser.balance < amount && currentUser.role !== 'admin') return alert("Zu wenig Geld!");
+        if(isNaN(amount) || amount <= 0) return alert("Betrag eingeben!");
+        if(currentUser.balance < amount && currentUser.role !== 'admin') return alert("Guthaben reicht nicht!");
 
-        if(currentUser.role !== 'admin') await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
+        if(currentUser.role !== 'admin') {
+            await db.from('accounts').update({ balance: currentUser.balance - amount }).eq('name', currentUser.name);
+        }
         await db.from('accounts').update({ balance: receiver.balance + amount }).eq('name', receiverName);
         await db.from('transactions').insert([{ sender: currentUser.name, receiver: receiverName, amount, transaction_type: 'money', message: msg }]);
+        
+        alert("Geld erfolgreich gesendet!");
+        document.getElementById('transferAmount').value = "";
         sync();
     }
 
     function render() {
         if(!currentUser) return;
         const user = accounts.find(a => a.id === currentUser.id);
-        currentUser = user; // Update local user state
+        currentUser = user; 
         
         document.getElementById('myBalanceDisplay').innerText = user.role === 'admin' ? '∞ §' : `${parseFloat(user.balance).toFixed(2)} §`;
-        document.getElementById('userBadge').innerHTML = `<strong>${user.name}</strong> (${user.role})`;
+        document.getElementById('userBadge').innerHTML = `<strong>${user.name}</strong> <span style="font-size:10px; background:#ddd; padding:2px 6px; border-radius:5px;">${user.role.toUpperCase()}</span>`;
 
-        // Gutscheine Tabelle
         const myV = vouchers.filter(v => v.owner === user.name);
         document.getElementById('myVouchersTable').querySelector('tbody').innerHTML = myV.map(v => `
-            <tr><td><code>${v.code}</code></td><td>${v.value} §</td><td>AKTIV</td></tr>
+            <tr><td><code>${v.code}</code></td><td>${v.value} §</td><td><span style="color:green; font-weight:bold;">BEREIT</span></td></tr>
         `).join('');
 
-        // Dropdowns
         const others = accounts.filter(a => a.name !== user.name);
         document.getElementById('moneyReceiverSelect').innerHTML = others.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
         document.getElementById('initialOwnerSelect').innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
 
-        // Verlauf
         document.getElementById('historyTable').querySelector('tbody').innerHTML = transactions
             .filter(t => t.sender === user.name || t.receiver === user.name)
             .map(t => {
                 const isS = t.sender === user.name;
-                return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td><td style="color:${isS?'red':'green'}">${isS?'-':'+'}${t.amount} §</td><td>${t.message||'-'}</td></tr>`;
+                return `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td><td style="color:${isS?'var(--danger)':'var(--success)'}; font-weight:700">${isS?'-':'+'}${t.amount} §</td><td>${t.message||'-'}</td></tr>`;
             }).join('');
 
-        // Admin Tabelle
         if(user.role === 'admin') {
             document.getElementById('accountTable').querySelector('tbody').innerHTML = accounts.map(a => `
-                <tr><td>${a.name}</td><td>${a.balance} §</td><td>-</td></tr>
+                <tr><td><strong>${a.name}</strong></td><td>${a.balance} §</td><td>${a.role}</td></tr>
             `).join('');
         }
     }
@@ -278,10 +301,11 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('view-' + id).classList.add('active');
         document.getElementById('nav-' + id).classList.add('active');
+        document.getElementById('viewTitle').innerText = document.getElementById('nav-' + id).innerText;
     }
 
     function logout() { location.reload(); }
-    setInterval(sync, 10000);
+    setInterval(sync, 15000); 
     window.onload = sync;
 </script>
 </body>
