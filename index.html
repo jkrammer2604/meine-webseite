@@ -6,66 +6,163 @@
     <title>VoucherPay Ultimate</title>
     <link rel="icon" href="data:,">
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151b2c;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .login-container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+        .auth-card {
+            background-color: var(--card-bg);
+            border: 1px solid #242f47;
+            border-radius: 24px;
+            padding: 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
         }
-        h2 {
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            justify-content: center;
+        }
+
+        .brand i {
+            font-size: 28px;
+            color: var(--primary);
+        }
+
+        .brand h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .brand span {
+            color: var(--primary);
+        }
+
+        .intro-text {
             text-align: center;
-            color: #333;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
-        .input-group {
-            margin-bottom: 16px;
+
+        .intro-text h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
-        .input-group label {
-            display: block;
-            margin-bottom: 6px;
-            color: #666;
+
+        .intro-text p {
+            color: var(--text-muted);
             font-size: 14px;
         }
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            color: var(--text-muted);
             font-size: 16px;
         }
-        .btn-login {
+
+        .form-group input {
             width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
+            padding: 14px 16px 14px 48px;
+            background-color: #1e2640;
+            border: 1px solid #2e3a5f;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #242e4d;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
         }
-        .btn-login:hover {
-            background-color: #45a049;
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
         }
-        .status-message {
-            margin-top: 15px;
-            text-align: center;
+
+        .status-box {
+            margin-top: 20px;
+            padding: 12px 16px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: bold;
+            display: none;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 
@@ -73,72 +170,110 @@
 </head>
 <body>
 
-<div class="login-container">
-    <h2>VoucherPay Login</h2>
-    
+<div class="auth-card">
+    <div class="brand">
+        <i class="fa-solid fa-wallet"></i>
+        <h1>VoucherPay<span>Ultimate</span></h1>
+    </div>
+
+    <div class="intro-text">
+        <h2>Willkommen zurück</h2>
+        <p>Melde dich mit deinem Nutzernamen an.</p>
+    </div>
+
     <form id="loginForm">
-        <div class="input-group">
-            <label for="email">E-Mail-Adresse</label>
-            <input type="email" id="email" placeholder="beispiel@mail.com" required>
+        <div class="form-group">
+            <label for="username">Nutzername</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="username" placeholder="z.B. MaxMustermann" required>
+            </div>
         </div>
-        <div class="input-group">
+
+        <div class="form-group">
             <label for="password">Passwort</label>
-            <input type="password" id="password" placeholder="••••••••" required>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
         </div>
-        <button type="submit" class="btn-login">Einloggen</button>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <span>Anmelden</span>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
     </form>
 
-    <div id="status" class="status-message"></div>
+    <div id="statusBox" class="status-box">
+        <i id="statusIcon"></i>
+        <span id="statusText"></span>
+    </div>
 </div>
 
 <script>
-    // ====== 1. SUPABASE KONFIGURATION ======
-    // WICHTIG: Ersetze 'DEINE_PROJEKT_URL' mit deiner echten URL aus dem Supabase Dashboard!
-    // Beispiel: https://abcedfghijklm.supabase.co
-    const SUPABASE_URL = "https://DEINE_PROJEKT_URL.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd"; // Dein Key aus dem Dokument
+    // ====== 1. SUPABASE CONFIGURATION ======
+    // Ersetze 'DEINE-PROJEKT-ID' durch deine echte Supabase-Projekt-ID
+    const SUPABASE_URL = "https://DEINE-PROJEKT-ID.supabase.co"; 
+    const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd"; // Aus deinem Dokument
 
-    // Initialisierung des Supabase Clients
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    const loginForm = document.getElementById('loginForm');
+    const statusBox = document.getElementById('statusBox');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showStatus(type, message) {
+        statusBox.style.display = "flex";
+        statusText.innerText = message;
+        
+        if (type === 'loading') {
+            statusBox.style.backgroundColor = "rgba(99, 102, 241, 0.1)";
+            statusBox.style.color = "var(--primary)";
+            statusIcon.className = "fa-solid fa-circle-notch fa-spin";
+        } else if (type === 'success') {
+            statusBox.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+            statusBox.style.color = "var(--accent)";
+            statusIcon.className = "fa-solid fa-circle-check";
+        } else if (type === 'error') {
+            statusBox.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+            statusBox.style.color = "var(--danger)";
+            statusIcon.className = "fa-solid fa-circle-exclamation";
+        }
+    }
+
     // ====== 2. LOGIN LOGIK ======
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Verhindert das Neuladen der Seite
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
-        const statusDiv = document.getElementById('status');
         
-        statusDiv.style.color = "blue";
-        statusDiv.innerText = "Anmeldung läuft...";
+        submitBtn.disabled = true;
+        showStatus('loading', 'Überprüfe Anmeldedaten...');
+
+        // WICHTIG: Verwandelt den eingegebenen Nutzernamen im Hintergrund in die Schein-E-Mail
+        const generatedEmail = `${username.toLowerCase()}@voucherpay.internal`;
 
         try {
-            // Verbindung zu Supabase Auth herstellen
             const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
+                email: generatedEmail, // Supabase erhält die generierte E-Mailadresse
                 password: password,
             });
 
             if (error) {
-                // Wenn Supabase einen Fehler zurückgibt (z.B. falsche Daten)
-                statusDiv.style.color = "red";
-                statusDiv.innerText = "Fehler: " + error.message;
-                console.error("Supabase Error:", error);
+                showStatus('error', 'Nutzername oder Passwort falsch.');
+                console.error("Supabase Auth Error:", error.message);
+                submitBtn.disabled = false;
             } else {
-                // Login erfolgreich
-                statusDiv.style.color = "green";
-                statusDiv.innerText = "Erfolgreich angemeldet! Willkommen.";
-                console.log("Benutzerdaten:", data);
-                
-                // Hier kannst du den User nach dem Login weiterleiten:
-                // window.location.href = "dashboard.html";
+                showStatus('success', 'Erfolgreich angemeldet!');
+                console.log("Login-Erfolg:", data);
             }
 
         } catch (err) {
-            // Falls die URL komplett falsch ist (führt zum 404 Fehler)
-            statusDiv.style.color = "red";
-            statusDiv.innerText = "Netzwerkfehler! Bitte prüfe deine SUPABASE_URL.";
-            console.error("Kritischer Fehler:", err);
+            showStatus('error', 'Netzwerkfehler! Bitte die SUPABASE_URL prüfen.');
+            submitBtn.disabled = false;
         }
     });
 </script>
