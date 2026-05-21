@@ -178,7 +178,7 @@
 
     <div class="intro-text">
         <h2>Willkommen zurück</h2>
-        <p>Melde dich mit deinem Nutzernamen an.</p>
+        <p>Melde dich mit deinen Tabellen-Daten an.</p>
     </div>
 
     <form id="loginForm">
@@ -186,7 +186,7 @@
             <label for="username">Nutzername</label>
             <div class="input-wrapper">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" placeholder="z.B. MaxMustermann" required>
+                <input type="text" id="username" placeholder="Nutzername eingeben" required>
             </div>
         </div>
 
@@ -212,13 +212,11 @@
 
 <script>
     // ====== 1. SUPABASE CONFIGURATION ======
-   // So muss es oben stehen:
-const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
-const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd";
+    const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
+    const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd"; 
 
-// WICHTIG: Nutze direkt 'supabase.createClient'
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const loginForm = document.getElementById('loginForm');
     const statusBox = document.getElementById('statusBox');
     const statusIcon = document.getElementById('statusIcon');
@@ -244,36 +242,48 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
     }
 
-    // ====== 2. LOGIN LOGIK ======
+    // ====== 2. EIGENE TABELLEN LOGIK ======
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
+        const inputUsername = document.getElementById('username').value.trim();
+        const inputPassword = document.getElementById('password').value;
         
         submitBtn.disabled = true;
-        showStatus('loading', 'Überprüfe Anmeldedaten...');
-
-        // WICHTIG: Verwandelt den eingegebenen Nutzernamen im Hintergrund in die Schein-E-Mail
-        const generatedEmail = `${username.toLowerCase()}@voucherpay.internal`;
+        showStatus('loading', 'Suche Nutzer in Tabelle...');
 
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: generatedEmail, // Supabase erhält die generierte E-Mailadresse
-                password: password,
-            });
+            // WICHTIG: Ersetze 'DEINE_TABELLEN_NAME' mit dem echten Namen deiner Tabelle aus Supabase!
+            // Falls deine Spalten anders heißen als 'username' oder 'password', musst du das hier ebenfalls anpassen.
+            const { data, error } = await supabaseClient
+                .from('accounts') 
+                .select('*')
+                .eq('username', inputUsername)
+                .eq('password', inputPassword);
 
             if (error) {
-                showStatus('error', 'Nutzername oder Passwort falsch.');
-                console.error("Supabase Auth Error:", error.message);
+                showStatus('error', 'Datenbankfehler: ' + error.message);
+                console.error("Tabellen-Abfrage-Fehler:", error);
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Wenn die Liste "data" leer ist (Länge 0), wurde keine Übereinstimmung gefunden
+            if (data.length === 0) {
+                showStatus('error', 'Nutzername oder Passwort ist falsch.');
                 submitBtn.disabled = false;
             } else {
+                // Ein passender Eintrag wurde gefunden!
                 showStatus('success', 'Erfolgreich angemeldet!');
-                console.log("Login-Erfolg:", data);
+                console.log("Erfolgreicher Login! Gefundener Nutzer:", data[0]);
+                
+                // Hier kannst du die Weiterleitung aktivieren
+                // window.location.href = "dashboard.html";
             }
 
         } catch (err) {
-            showStatus('error', 'Netzwerkfehler! Bitte die SUPABASE_URL prüfen.');
+            showStatus('error', 'Verbindungsfehler zur Tabelle.');
+            console.error("Kritischer Fehler:", err);
             submitBtn.disabled = false;
         }
     });
