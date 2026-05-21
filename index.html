@@ -257,8 +257,8 @@
             const { data, error } = await supabaseClient
                 .from('accounts') 
                 .select('*')
-                .eq('username', inputUsername)
-                .eq('password', inputPassword);
+                .eq('name', inputUsername)
+                .eq('pass', inputPassword);
 
             if (error) {
                 showStatus('error', 'Datenbankfehler: ' + error.message);
