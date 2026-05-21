@@ -178,7 +178,7 @@
 
     <div class="intro-text">
         <h2>Willkommen zurück</h2>
-        <p>Melde dich mit deinen Tabellen-Daten an.</p>
+        <p>Melde dich mit deinem Nutzernamen an.</p>
     </div>
 
     <form id="loginForm">
@@ -242,7 +242,7 @@
         }
     }
 
-    // ====== 2. EIGENE TABELLEN LOGIK ======
+    // ====== 2. LOGIK FÜR DEINE ACCOUNTS-TABELLE ======
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -250,11 +250,10 @@
         const inputPassword = document.getElementById('password').value;
         
         submitBtn.disabled = true;
-        showStatus('loading', 'Suche Nutzer in Tabelle...');
+        showStatus('loading', 'Überprüfe Kontodaten...');
 
         try {
-            // WICHTIG: Ersetze 'DEINE_TABELLEN_NAME' mit dem echten Namen deiner Tabelle aus Supabase!
-            // Falls deine Spalten anders heißen als 'username' oder 'password', musst du das hier ebenfalls anpassen.
+            // Nutzt standardmäßig den Tabellennamen 'accounts'
             const { data, error } = await supabaseClient
                 .from('accounts') 
                 .select('*')
@@ -263,26 +262,26 @@
 
             if (error) {
                 showStatus('error', 'Datenbankfehler: ' + error.message);
-                console.error("Tabellen-Abfrage-Fehler:", error);
+                console.error("Fehler bei Tabellen-Abfrage:", error);
                 submitBtn.disabled = false;
                 return;
             }
 
-            // Wenn die Liste "data" leer ist (Länge 0), wurde keine Übereinstimmung gefunden
+            // Wenn kein passender Eintrag gefunden wurde
             if (data.length === 0) {
                 showStatus('error', 'Nutzername oder Passwort ist falsch.');
                 submitBtn.disabled = false;
             } else {
-                // Ein passender Eintrag wurde gefunden!
+                // Nutzer erfolgreich in deiner Tabelle gefunden!
                 showStatus('success', 'Erfolgreich angemeldet!');
-                console.log("Erfolgreicher Login! Gefundener Nutzer:", data[0]);
+                console.log("Eingeloggt! Benutzer-Reihe:", data[0]);
                 
-                // Hier kannst du die Weiterleitung aktivieren
+                // Hier kannst du die Weiterleitung aktivieren:
                 // window.location.href = "dashboard.html";
             }
 
         } catch (err) {
-            showStatus('error', 'Verbindungsfehler zur Tabelle.');
+            showStatus('error', 'Verbindung zur Tabelle fehlgeschlagen.');
             console.error("Kritischer Fehler:", err);
             submitBtn.disabled = false;
         }
