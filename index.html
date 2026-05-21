@@ -4,303 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VoucherPay Ultimate</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:,">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        
-        :root {
-            --p: #6366f1; --p-dark: #4f46e5; --bg: #f8fafc;
-            --card: #ffffff; --txt: #0f172a; --txt-m: #64748b;
-            --success: #10b981; --danger: #ef4444; --radius: 18px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--txt); display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar */
-        .sidebar { width: 280px; background: #fff; border-right: 1px solid #e2e8f0; padding: 35px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--p); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
-        .nav-item { padding: 14px 18px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; color: var(--txt-m); font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
-        .nav-item:hover, .nav-item.active { background: var(--p); color: #fff; }
-
-        /* Main Area */
-        .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 900px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .card { background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid #f1f5f9; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .balance-card { background: linear-gradient(135deg, var(--p), #a855f7); color: #fff; border: none; text-align: center; }
-
-        /* Forms */
-        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; background: #fdfdfd; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--p); color: #fff; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        button:hover { background: var(--p-dark); transform: translateY(-1px); }
-        .btn-sec { background: var(--success); }
-
-        /* Tables */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; font-size: 12px; color: var(--txt-m); text-transform: uppercase; padding: 10px; }
-        td { padding: 15px 10px; border-top: 1px solid #f1f5f9; font-size: 14px; }
-
-        /* States */
-        .overlay { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
-        .view.active { display: block; }
-        .hidden { display: none !important; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .login-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #666;
+            font-size: 14px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .btn-login:hover {
+            background-color: #45a049;
+        }
+        .status-message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div id="login-screen" class="overlay">
-    <div style="background:#fff; padding:45px; border-radius:25px; width:100%; max-width:400px; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
-        <h2 style="text-align:center; margin-bottom:30px;">VoucherPay Login</h2>
-        <input type="text" id="lUser" placeholder="Benutzername">
-        <input type="password" id="lPass" placeholder="Passwort">
-        <button onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Anmelden</button>
-        <p id="lErr" style="color:var(--danger); text-align:center; margin-top:15px; font-size:13px;"></p>
-    </div>
-</div>
-
-<div class="sidebar">
-    <div class="logo"><i class="fas fa-bolt"></i> VoucherPay</div>
-    <div class="nav-item active" onclick="showView('dash')" id="n-dash"><i class="fas fa-th-large"></i> Dashboard</div>
-    <div class="nav-item" onclick="showView('send')" id="n-send"><i class="fas fa-paper-plane"></i> Senden</div>
-    <div class="nav-item" onclick="showView('hist')" id="n-hist"><i class="fas fa-history"></i> Verlauf</div>
-    <div class="nav-item admin-only hidden" onclick="showView('admin')" id="n-admin"><i class="fas fa-user-shield"></i> Admin Panel</div>
-    <button onclick="location.reload()" style="margin-top:auto; background:#fee2e2; color:#b91c1c;"><i class="fas fa-power-off"></i> Logout</button>
-</div>
-
-<div class="main">
-    <div class="container">
-        <div class="header">
-            <h1 id="view-title">Dashboard</h1>
-            <div id="user-info" style="text-align:right; font-weight:600;"></div>
+<div class="login-container">
+    <h2>VoucherPay Login</h2>
+    
+    <form id="loginForm">
+        <div class="input-group">
+            <label for="email">E-Mail-Adresse</label>
+            <input type="email" id="email" placeholder="beispiel@mail.com" required>
         </div>
-
-        <div id="v-dash" class="view active">
-            <div class="card balance-card">
-                <p style="opacity:0.9;">Aktuelles Guthaben</p>
-                <h1 id="balance-display" style="font-size:3.5rem; font-weight:800; margin:10px 0;">0.00 §</h1>
-            </div>
-
-            <div class="card">
-                <h3>Gutschein einlösen</h3>
-                <div style="display:flex; gap:12px; margin-top:15px;">
-                    <input type="text" id="redeem-input" placeholder="Code hier eingeben..." style="margin:0;">
-                    <button class="btn-sec" onclick="redeemVoucher()" style="width:140px;">Einlösen</button>
-                </div>
-                <p id="redeem-msg" style="margin-top:12px; font-size:13px; font-weight:600; text-align:center;"></p>
-            </div>
-
-            <div class="card">
-                <h3>Meine Gutscheine</h3>
-                <table id="my-vouchers-table">
-                    <thead><tr><th>Code</th><th>Wert</th><th>Status</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+        <div class="input-group">
+            <label for="password">Passwort</label>
+            <input type="password" id="password" placeholder="••••••••" required>
         </div>
+        <button type="submit" class="btn-login">Einloggen</button>
+    </form>
 
-        <div id="v-send" class="view">
-            <div class="card">
-                <h3>Geld überweisen</h3>
-                <input type="number" id="send-amount" placeholder="Betrag in §">
-                <select id="send-receiver"></select>
-                <textarea id="send-msg" placeholder="Nachricht (optional)"></textarea>
-                <button onclick="sendMoney()"><i class="fas fa-check-circle"></i> Jetzt senden</button>
-            </div>
-        </div>
-
-        <div id="v-hist" class="view">
-            <div class="card">
-                <h3>Transaktionsverlauf</h3>
-                <table id="history-table">
-                    <thead><tr><th>Datum</th><th>Partner</th><th>Betrag</th><th>Info</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="v-admin" class="view">
-            <div class="card">
-                <h3 style="color:var(--p);">Gutschein erstellen</h3>
-                <div style="display:grid; grid-template-columns: 1fr 100px; gap:10px;">
-                    <input type="text" id="adm-v-code" placeholder="Eindeutiger Code">
-                    <input type="number" id="adm-v-val" placeholder="Wert">
-                </div>
-                <select id="adm-v-owner"></select>
-                <button onclick="adminCreateVoucher()"><i class="fas fa-plus"></i> Gutschein generieren</button>
-            </div>
-            
-            <div class="card">
-                <h3>Alle Nutzer</h3>
-                <table id="admin-users-table">
-                    <thead><tr><th>Nutzer</th><th>Guthaben</th><th>Rolle</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
+    <div id="status" class="status-message"></div>
 </div>
 
 <script>
-    // Supabase Konfiguration
-    const SB_URL = 'https://cilvtkbochcuanmakrgq.supabase.co';
-    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpbHZ0a2JvY2hjdWFubWFrcmdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTgwOTEsImV4cCI6MjA5MTI5NDA5MX0.Nq06_MuhKf8qyWorwX4n3320RtHCs-LKuHhXLiXvPgI';
-    const sb = window.supabase.createClient(SB_URL, SB_KEY);
+    // ====== 1. SUPABASE KONFIGURATION ======
+    // WICHTIG: Ersetze 'DEINE_PROJEKT_URL' mit deiner echten URL aus dem Supabase Dashboard!
+    // Beispiel: https://abcedfghijklm.supabase.co
+    const SUPABASE_URL = "https://DEINE_PROJEKT_URL.supabase.co"; 
+    const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd"; // Dein Key aus dem Dokument
 
-    let currentUser = null, accounts = [], vouchers = [], transactions = [];
+    // Initialisierung des Supabase Clients
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Daten-Synchronisierung
-    async function sync() {
-        const { data: a } = await sb.from('accounts').select('*');
-        const { data: v } = await sb.from('vouchers').select('*');
-        const { data: t } = await sb.from('transactions').select('*').order('created_at', { ascending: false });
+    // ====== 2. LOGIN LOGIK ======
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Verhindert das Neuladen der Seite
         
-        accounts = a || []; vouchers = v || []; transactions = t || [];
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const statusDiv = document.getElementById('status');
         
-        if (currentUser) {
-            currentUser = accounts.find(acc => acc.id === currentUser.id);
-            render();
+        statusDiv.style.color = "blue";
+        statusDiv.innerText = "Anmeldung läuft...";
+
+        try {
+            // Verbindung zu Supabase Auth herstellen
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                // Wenn Supabase einen Fehler zurückgibt (z.B. falsche Daten)
+                statusDiv.style.color = "red";
+                statusDiv.innerText = "Fehler: " + error.message;
+                console.error("Supabase Error:", error);
+            } else {
+                // Login erfolgreich
+                statusDiv.style.color = "green";
+                statusDiv.innerText = "Erfolgreich angemeldet! Willkommen.";
+                console.log("Benutzerdaten:", data);
+                
+                // Hier kannst du den User nach dem Login weiterleiten:
+                // window.location.href = "dashboard.html";
+            }
+
+        } catch (err) {
+            // Falls die URL komplett falsch ist (führt zum 404 Fehler)
+            statusDiv.style.color = "red";
+            statusDiv.innerText = "Netzwerkfehler! Bitte prüfe deine SUPABASE_URL.";
+            console.error("Kritischer Fehler:", err);
         }
-    }
-
-    // Login Logik
-    async function handleLogin() {
-        await sync();
-        const n = document.getElementById('lUser').value.trim();
-        const p = document.getElementById('lPass').value.trim();
-        const found = accounts.find(acc => acc.name === n && acc.pass === p);
-
-        if (found) {
-            currentUser = found;
-            document.getElementById('login-screen').style.display = 'none';
-            if (currentUser.role === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
-            render();
-        } else {
-            document.getElementById('lErr').innerText = "Benutzername oder Passwort falsch.";
-        }
-    }
-
-    // Gutschein Einlösen
-    async function redeemVoucher() {
-        const inp = document.getElementById('redeem-input');
-        const msg = document.getElementById('redeem-msg');
-        const code = inp.value.trim();
-        const voc = vouchers.find(v => v.code === code);
-
-        if (!voc) {
-            msg.innerText = "❌ Ungültiger oder bereits benutzter Code.";
-            msg.style.color = "var(--danger)";
-            return;
-        }
-
-        const val = parseFloat(voc.value);
-        const { error } = await sb.from('accounts').update({ balance: currentUser.balance + val }).eq('id', currentUser.id);
-
-        if (!error) {
-            await sb.from('vouchers').delete().eq('code', code);
-            await sb.from('transactions').insert([{ sender: 'SYSTEM', receiver: currentUser.name, amount: val, message: `Gutschein: ${code}` }]);
-            msg.innerText = `✅ Erfolg! +${val.toFixed(2)} § erhalten.`;
-            msg.style.color = "var(--success)";
-            inp.value = "";
-            sync();
-        }
-    }
-
-    // Geld senden
-    async function sendMoney() {
-        const amt = parseFloat(document.getElementById('send-amount').value);
-        const recName = document.getElementById('send-receiver').value;
-        const msg = document.getElementById('send-msg').value;
-        const recAcc = accounts.find(a => a.name === recName);
-
-        if (isNaN(amt) || amt <= 0) return alert("Ungültiger Betrag");
-        if (currentUser.balance < amt && currentUser.role !== 'admin') return alert("Guthaben reicht nicht!");
-
-        if (currentUser.role !== 'admin') {
-            await sb.from('accounts').update({ balance: currentUser.balance - amt }).eq('id', currentUser.id);
-        }
-        await sb.from('accounts').update({ balance: recAcc.balance + amt }).eq('id', recAcc.id);
-        await sb.from('transactions').insert([{ sender: currentUser.name, receiver: recName, amount: amt, message: msg }]);
-        
-        alert("Erfolgreich gesendet!");
-        document.getElementById('send-amount').value = "";
-        sync();
-    }
-
-    // Admin: Gutschein erstellen
-    async function adminCreateVoucher() {
-        const c = document.getElementById('adm-v-code').value.trim();
-        const v = parseFloat(document.getElementById('adm-v-val').value);
-        const o = document.getElementById('adm-v-owner').value;
-
-        if (!c || isNaN(v)) return alert("Bitte alle Felder füllen!");
-
-        const { error } = await sb.from('vouchers').insert([{ code: c, value: v, owner: o }]);
-        if (error) alert("Fehler: Code existiert wahrscheinlich schon.");
-        else {
-            alert("Gutschein erstellt!");
-            document.getElementById('adm-v-code').value = "";
-            sync();
-        }
-    }
-
-    // UI Rendering
-    function render() {
-        if (!currentUser) return;
-
-        // Dashboard & User Info
-        document.getElementById('balance-display').innerText = currentUser.role === 'admin' ? '∞ §' : `${currentUser.balance.toFixed(2)} §`;
-        document.getElementById('user-info').innerText = `${currentUser.name} (${currentUser.role})`;
-
-        // Eigene Gutscheine Tabelle
-        const myV = vouchers.filter(v => v.owner === currentUser.name);
-        document.getElementById('my-vouchers-table').querySelector('tbody').innerHTML = myV.map(v => `
-            <tr><td><code>${v.code}</code></td><td>${v.value} §</td><td><span style="color:var(--success)">AKTIV</span></td></tr>
-        `).join('');
-
-        // Select-Listen füllen
-        const otherUsers = accounts.filter(a => a.id !== currentUser.id);
-        const userOpts = otherUsers.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-        const allUserOpts = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-        document.getElementById('send-receiver').innerHTML = userOpts;
-        document.getElementById('adm-v-owner').innerHTML = allUserOpts;
-
-        // Verlauf Tabelle
-        const myT = transactions.filter(t => t.sender === currentUser.name || t.receiver === currentUser.name);
-        document.getElementById('history-table').querySelector('tbody').innerHTML = myT.map(t => {
-            const isS = t.sender === currentUser.name;
-            return `<tr>
-                <td>${new Date(t.created_at).toLocaleDateString()}</td>
-                <td>${isS ? 'An: '+t.receiver : 'Von: '+t.sender}</td>
-                <td style="color:${isS ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">${isS?'-':'+'}${t.amount} §</td>
-                <td>${t.message || '-'}</td>
-            </tr>`;
-        }).join('');
-
-        // Admin Nutzer Tabelle
-        if (currentUser.role === 'admin') {
-            document.getElementById('admin-users-table').querySelector('tbody').innerHTML = accounts.map(a => `
-                <tr><td><strong>${a.name}</strong></td><td>${a.balance.toFixed(2)} §</td><td>${a.role}</td></tr>
-            `).join('');
-        }
-    }
-
-    function showView(id) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('v-' + id).classList.add('active');
-        document.getElementById('n-' + id).classList.add('active');
-        document.getElementById('view-title').innerText = document.getElementById('n-' + id).innerText;
-    }
-
-    // Init
-    setInterval(sync, 10000);
-    window.onload = sync;
+    });
 </script>
+
 </body>
 </html>
