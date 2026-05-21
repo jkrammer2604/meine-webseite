@@ -212,12 +212,13 @@
 
 <script>
     // ====== 1. SUPABASE CONFIGURATION ======
-    // Ersetze 'DEINE-PROJEKT-ID' durch deine echte Supabase-Projekt-ID
-    const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co/rest/v1/"; 
-    const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd"; // Aus deinem Dokument
+   // So muss es oben stehen:
+const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
+const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd";
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+// WICHTIG: Nutze direkt 'supabase.createClient'
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
     const loginForm = document.getElementById('loginForm');
     const statusBox = document.getElementById('statusBox');
     const statusIcon = document.getElementById('statusIcon');
