@@ -3,289 +3,426 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay Ultimate</title>
+    <title>VoucherPay Ultimate - Supabase</title>
     <link rel="icon" href="data:,">
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151b2c;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --accent: #10b981;
-            --danger: #ef4444;
+            --p: #6366f1; 
+            --p-dark: #4f46e5; 
+            --bg: #f8fafc;
+            --card: #ffffff; 
+            --txt: #0f172a; 
+            --txt-m: #64748b;
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --radius: 18px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--txt); display: flex; height: 100vh; overflow: hidden; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+        /* Sidebar */
+        .sidebar { width: 280px; background: #fff; border-right: 1px solid #e2e8f0; padding: 35px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--p); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 14px 18px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; color: var(--txt-m); font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: var(--p); color: #fff; }
 
-        .auth-card {
-            background-color: var(--card-bg);
-            border: 1px solid #242f47;
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-        }
+        /* Main Content */
+        .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 900px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        .card { background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid #f1f5f9; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .balance-card { background: linear-gradient(135deg, var(--p), #a855f7); color: #fff; border: none; text-align: center; }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 32px;
-            justify-content: center;
-        }
+        /* Controls */
+        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; background: #fdfdfd; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--p); color: #fff; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        button:hover { background: var(--p-dark); transform: translateY(-1px); }
+        .btn-sec { background: var(--success); }
 
-        .brand i {
-            font-size: 28px;
-            color: var(--primary);
-        }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; font-size: 12px; color: var(--txt-m); text-transform: uppercase; padding: 10px; }
+        td { padding: 15px 10px; border-top: 1px solid #f1f5f9; font-size: 14px; }
 
-        .brand h1 {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .brand span {
-            color: var(--primary);
-        }
-
-        .intro-text {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .intro-text h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .intro-text p {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 16px;
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            background-color: #1e2640;
-            border: 1px solid #2e3a5f;
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 15px;
-            transition: all 0.2s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #242e4d;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 24px;
-        }
-
-        .btn-submit:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .status-box {
-            margin-top: 20px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-        }
+        /* Overlays & Views */
+        .overlay { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div class="auth-card">
-    <div class="brand">
-        <i class="fa-solid fa-wallet"></i>
-        <h1>VoucherPay<span>Ultimate</span></h1>
+<div id="login-screen" class="overlay">
+    <div style="background:#fff; padding:45px; border-radius:25px; width:100%; max-width:400px; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+        <h2 style="text-align:center; margin-bottom:30px; color: #0f172a;">VoucherPay Login</h2>
+        <input type="text" id="lUser" placeholder="Benutzername (z.B. Jakob)">
+        <input type="password" id="lPass" placeholder="Passwort">
+        <button onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Anmelden</button>
+        <p id="lErr" style="color:var(--danger); text-align:center; margin-top:15px; font-size:13px; font-weight: 600;"></p>
     </div>
+</div>
 
-    <div class="intro-text">
-        <h2>Willkommen zurück</h2>
-        <p>Melde dich mit deinem Nutzernamen an.</p>
-    </div>
+<div class="sidebar">
+    <div class="logo"><i class="fas fa-bolt"></i> VoucherPay</div>
+    <div class="nav-item active" onclick="showView('dash')" id="n-dash"><i class="fas fa-th-large"></i> Dashboard</div>
+    <div class="nav-item" onclick="showView('send')" id="n-send"><i class="fas fa-paper-plane"></i> Senden</div>
+    <div class="nav-item" onclick="showView('hist')" id="n-hist"><i class="fas fa-history"></i> Verlauf</div>
+    <button onclick="handleLogout()" style="margin-top:auto; background:#fee2e2; color:#b91c1c;"><i class="fas fa-power-off"></i> Logout</button>
+</div>
 
-    <form id="loginForm">
-        <div class="form-group">
-            <label for="username">Nutzername</label>
-            <div class="input-wrapper">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" placeholder="Nutzername eingeben" required>
+<div class="main">
+    <div class="container">
+        <div class="header">
+            <h1 id="view-title">Dashboard</h1>
+            <div id="user-info" style="text-align:right; font-weight:600;">Lade Profil...</div>
+        </div>
+
+        <div id="v-dash" class="view active">
+            <div class="card balance-card">
+                <p style="opacity:0.9;">Aktuelles Guthaben</p>
+                <h1 id="balance-display" style="font-size:3.5rem; font-weight:800; margin:10px 0;">0.00 §</h1>
+            </div>
+
+            <div class="card">
+                <h3>Gutschein einlösen</h3>
+                <div style="display:flex; gap:12px; margin-top:15px;">
+                    <input type="text" id="redeem-input" placeholder="Code hier eingeben..." style="margin:0;">
+                    <button class="btn-sec" onclick="redeemVoucher()" style="width:140px;">Einlösen</button>
+                </div>
+                <p id="redeem-msg" style="margin-top:12px; font-size:13px; font-weight:600; text-align:center;"></p>
+            </div>
+
+            <div class="card">
+                <h3>Meine eingelösten Gutscheine</h3>
+                <table>
+                    <thead>
+                        <tr><th>Code</th><th>Wert</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="vouchers-tbody">
+                        </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="password">Passwort</label>
-            <div class="input-wrapper">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="password" placeholder="••••••••" required>
+        <div id="v-send" class="view">
+            <div class="card">
+                <h3>Geld überweisen</h3>
+                <input type="number" id="send-amount" placeholder="Betrag in §" step="0.01">
+                <select id="send-receiver">
+                    </select>
+                <textarea id="send-msg" placeholder="Nachricht (optional)"></textarea>
+                <button onclick="sendMoney()"><i class="fas fa-check-circle"></i> Jetzt senden</button>
+                <p id="send-status-msg" style="margin-top:12px; font-size:13px; font-weight:600; text-align:center;"></p>
             </div>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">
-            <span>Anmelden</span>
-            <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    </form>
+        <div id="v-hist" class="view">
+            <div class="card">
+                <h3>Transaktionsverlauf</h3>
+                <table>
+                    <thead>
+                        <tr><th>Typ</th><th>Partner</th><th>Betrag</th><th>Nachricht</th></tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div id="statusBox" class="status-box">
-        <i id="statusIcon"></i>
-        <span id="statusText"></span>
     </div>
 </div>
 
 <script>
-    // ====== 1. SUPABASE CONFIGURATION ======
+ // ====== SUPABASE INSTANZIERUNG ======
     const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd"; 
+    const SUPABASE_ANON_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd";
+    
+    // WICHTIG: window.supabase verwenden, um Namenskonflikte zu vermeiden
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentUsername = ""; 
+    let currentUserBalance = 0;
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const loginForm = document.getElementById('loginForm');
-    const statusBox = document.getElementById('statusBox');
-    const statusIcon = document.getElementById('statusIcon');
-    const statusText = document.getElementById('statusText');
-    const submitBtn = document.getElementById('submitBtn');
-
-    function showStatus(type, message) {
-        statusBox.style.display = "flex";
-        statusText.innerText = message;
+    // Automatischer Login beim Laden der Seite, falls Daten im LocalStorage vorhanden sind
+    window.onload = async () => {
+        const savedUser = localStorage.getItem('vp_username');
+        const savedPass = localStorage.getItem('vp_password');
         
-        if (type === 'loading') {
-            statusBox.style.backgroundColor = "rgba(99, 102, 241, 0.1)";
-            statusBox.style.color = "var(--primary)";
-            statusIcon.className = "fa-solid fa-circle-notch fa-spin";
-        } else if (type === 'success') {
-            statusBox.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
-            statusBox.style.color = "var(--accent)";
-            statusIcon.className = "fa-solid fa-circle-check";
-        } else if (type === 'error') {
-            statusBox.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
-            statusBox.style.color = "var(--danger)";
-            statusIcon.className = "fa-solid fa-circle-exclamation";
+        if (savedUser && savedPass) {
+            const success = await performLogin(savedUser, savedPass);
+            if (!success) {
+                showLoginScreen();
+            }
+        } else {
+            showLoginScreen();
+        }
+    };
+
+    function showLoginScreen() {
+        document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    // ====== AUTHENTIFIZIERUNG ÜBER DIE 'ACCOUNTS' TABELLE ======
+    async function handleLogin() {
+        const user = document.getElementById('lUser').value.trim();
+        const pass = document.getElementById('lPass').value;
+        const errMsg = document.getElementById('lErr');
+
+        const success = await performLogin(user, pass);
+        if (success) {
+            localStorage.setItem('vp_username', user);
+            localStorage.setItem('vp_password', pass);
+            errMsg.innerText = "";
+        } else {
+            errMsg.innerText = "Fehler: Ungültiger Benutzername oder Passwort.";
         }
     }
 
-    // ====== 2. LOGIK FÜR DEINE ACCOUNTS-TABELLE ======
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const inputUsername = document.getElementById('username').value.trim();
-        const inputPassword = document.getElementById('password').value;
-        
-        submitBtn.disabled = true;
-        showStatus('loading', 'Überprüfe Kontodaten...');
+    async function performLogin(username, password) {
+        const { data: account, error } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('name', username)
+            .eq('pass', password)
+            .single();
 
-        try {
-            // Nutzt standardmäßig den Tabellennamen 'accounts'
-            const { data, error } = await supabaseClient
-                .from('accounts') 
-                .select('*')
-                .eq('name', inputUsername)
-                .eq('pass', inputPassword);
-
-            if (error) {
-                showStatus('error', 'Datenbankfehler: ' + error.message);
-                console.error("Fehler bei Tabellen-Abfrage:", error);
-                submitBtn.disabled = false;
-                return;
-            }
-
-            // Wenn kein passender Eintrag gefunden wurde
-            if (data.length === 0) {
-                showStatus('error', 'Nutzername oder Passwort ist falsch.');
-                submitBtn.disabled = false;
-            } else {
-                // Nutzer erfolgreich in deiner Tabelle gefunden!
-                showStatus('success', 'Erfolgreich angemeldet!');
-                console.log("Eingeloggt! Benutzer-Reihe:", data[0]);
-                
-                // Hier kannst du die Weiterleitung aktivieren:
-                // window.location.href = "dashboard.html";
-            }
-
-        } catch (err) {
-            showStatus('error', 'Verbindung zur Tabelle fehlgeschlagen.');
-            console.error("Kritischer Fehler:", err);
-            submitBtn.disabled = false;
+        if (error || !account) {
+            return false;
         }
-    });
+
+        currentUsername = account.name;
+        await loadUserData();
+        return true;
+    }
+
+    function handleLogout() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    // ====== DATA LOADER ENGINE ======
+    async function loadUserData() {
+        document.getElementById('login-screen').style.display = 'none';
+        
+        // 1. Aktuellen Kontostand aus 'accounts' abrufen
+        const { data: account } = await supabase
+            .from('accounts')
+            .select('balance')
+            .eq('name', currentUsername)
+            .single();
+
+        if (account) {
+            currentUserBalance = parseFloat(account.balance);
+            document.getElementById('user-info').innerText = "Angemeldet als: " + currentUsername;
+            document.getElementById('balance-display').innerText = currentUserBalance.toFixed(2) + " §";
+        }
+
+        // Parallel die restlichen Ansichten befüllen
+        loadMyVouchers();
+        loadDropdownUsers();
+        loadTransactions();
+    }
+
+    // Gutscheine laden, bei denen der aktuelle User der 'owner' ist
+    async function loadMyVouchers() {
+        const { data: vouchers } = await supabase
+            .from('vouchers')
+            .select('*')
+            .eq('owner', currentUsername);
+
+        const tbody = document.getElementById('vouchers-tbody');
+        tbody.innerHTML = "";
+
+        if (vouchers && vouchers.length > 0) {
+            vouchers.forEach(v => {
+                tbody.innerHTML += `<tr><td>${v.code}</td><td>${parseFloat(v.value).toFixed(2)} §</td><td style="color: var(--txt-m); font-weight:600;">Eingelöst</td></tr>`;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--txt-m)">Noch keine Gutscheine eingelöst.</td></tr>`;
+        }
+    }
+
+    // Alle anderen Usernamen für das Überweisungs-Dropdown laden
+    async function loadDropdownUsers() {
+        const { data: users } = await supabase
+            .from('accounts')
+            .select('name')
+            .not('name', 'eq', currentUsername);
+
+        const select = document.getElementById('send-receiver');
+        select.innerHTML = "";
+        
+        if (users) {
+            users.forEach(u => {
+                select.innerHTML += `<option value="${u.name}">${u.name}</option>`;
+            });
+        }
+    }
+
+    // Verlauf aus der 'transactions'-Tabelle auslesen
+    async function loadTransactions() {
+        const { data: txs } = await supabase
+            .from('transactions')
+            .select('*')
+            .or(`sender.eq.${currentUsername},receiver.eq.${currentUsername}`)
+            .order('created_at', { ascending: false });
+
+        const tbody = document.getElementById('history-tbody');
+        tbody.innerHTML = "";
+
+        if (txs && txs.length > 0) {
+            txs.forEach(t => {
+                const isSender = t.sender === currentUsername;
+                
+                const typeHTML = isSender 
+                    ? `<span style="color:var(--danger)"><i class="fas fa-arrow-up"></i> Gesendet</span>` 
+                    : `<span style="color:var(--success)"><i class="fas fa-arrow-down"></i> Erhalten</span>`;
+                
+                const partner = isSender ? (t.receiver || "Unbekannt") : (t.sender || "System");
+                const amountText = (isSender ? "-" : "+") + parseFloat(t.amount).toFixed(2) + " §";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${typeHTML}</td>
+                        <td>${partner}</td>
+                        <td style="font-weight:600;">${amountText}</td>
+                        <td>${t.message || ''}</td>
+                    </tr>`;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--txt-m)">Noch keine Transaktionen vorhanden.</td></tr>`;
+        }
+    }
+
+    // ====== TRANSAKTIONS-AKTIONEN ======
+
+    // 1. Gutschein einlösen
+    async function redeemVoucher() {
+        const codeInput = document.getElementById('redeem-input').value.trim();
+        const msg = document.getElementById('redeem-msg');
+        
+        if (!codeInput) return;
+
+        // Gutschein suchen, der noch keinen Owner hat (owner IS NULL)
+        const { data: voucher, error } = await supabase
+            .from('vouchers')
+            .select('*')
+            .eq('code', codeInput)
+            .single();
+
+        if (error || !voucher) {
+            msg.style.color = "var(--danger)";
+            msg.innerText = "Gutscheincode existiert nicht.";
+            return;
+        }
+
+        if (voucher.owner) {
+            msg.style.color = "var(--danger)";
+            msg.innerText = `Dieser Gutschein wurde bereits von '${voucher.owner}' eingelöst.`;
+            return;
+        }
+
+        const voucherValue = parseFloat(voucher.value);
+
+        // A) Gutschein als eingelöst markieren (owner setzen)
+        await supabase.from('vouchers').update({ owner: currentUsername }).eq('id', voucher.id);
+
+        // B) Kontostand des Users erhöhen
+        await supabase.from('accounts').update({ balance: currentUserBalance + voucherValue }).eq('name', currentUsername);
+        
+        // C) In den Transaktionsverlauf eintragen
+        await supabase.from('transactions').insert({
+            sender: "System",
+            receiver: currentUsername,
+            amount: voucherValue,
+            message: `Gutschein eingelöst: ${voucher.code}`
+        });
+
+        msg.style.color = "var(--success)";
+        msg.innerText = `Erfolgreich! ${voucherValue.toFixed(2)} § wurden gutgeschrieben.`;
+        document.getElementById('redeem-input').value = "";
+        
+        await loadUserData();
+    }
+
+    // 2. Geld senden (Überweisung)
+    async function sendMoney() {
+        const amount = parseFloat(document.getElementById('send-amount').value);
+        const receiverName = document.getElementById('send-receiver').value;
+        const sendMsg = document.getElementById('send-msg').value;
+        const statusMsg = document.getElementById('send-status-msg');
+
+        if (!amount || amount <= 0) {
+            statusMsg.style.color = "var(--danger)";
+            statusMsg.innerText = "Bitte gib einen gültigen Betrag ein.";
+            return;
+        }
+
+        if (amount > currentUserBalance) {
+            statusMsg.style.color = "var(--danger)";
+            statusMsg.innerText = "Fehler: Unzureichendes Guthaben.";
+            return;
+        }
+
+        // Kontostand des Empfängers abfragen
+        const { data: receiverAccount } = await supabase
+            .from('accounts')
+            .select('balance')
+            .eq('name', receiverName)
+            .single();
+
+        if (!receiverAccount) {
+            statusMsg.style.color = "var(--danger)";
+            statusMsg.innerText = "Fehler: Empfänger-Account nicht gefunden.";
+            return;
+        }
+
+        const recBalance = parseFloat(receiverAccount.balance);
+
+        // A) Eigenen Kontostand verringern
+        await supabase.from('accounts').update({ balance: currentUserBalance - amount }).eq('name', currentUsername);
+        
+        // B) Empfänger-Kontostand erhöhen
+        await supabase.from('accounts').update({ balance: recBalance + amount }).eq('name', receiverName);
+        
+        // C) Transaktion loggen
+        await supabase.from('transactions').insert({
+            sender: currentUsername,
+            receiver: receiverName,
+            amount: amount,
+            message: sendMsg
+        });
+
+        statusMsg.style.color = "var(--success)";
+        statusMsg.innerText = `Erfolgreich ${amount.toFixed(2)} § an ${receiverName} überwiesen!`;
+        document.getElementById('send-amount').value = "";
+        document.getElementById('send-msg').value = "";
+
+        await loadUserData();
+    }
+
+    // ====== NAV ENGINE (TAB-WECHSEL) ======
+    function showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+        document.getElementById('v-' + viewId).classList.add('active');
+        document.getElementById('n-' + viewId).classList.add('active');
+
+        const titles = { 'dash': 'Dashboard', 'send': 'Geld senden', 'hist': 'Verlauf' };
+        document.getElementById('view-title').innerText = titles[viewId] || 'Portal';
+    }
 </script>
 
 </body>
