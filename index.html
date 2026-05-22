@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay 1.3</title>
+    <title>VoucherPay 2.0</title>
     <link rel="icon" href="data:,">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -150,12 +150,11 @@
     let supabaseClient = null;
     let currentUsername = ""; 
     let currentUserBalance = 0;
-    let currentUserRole = ""; // Speichert die Rolle (admin / user)
+    let currentUserRole = ""; 
 
     // Start-Logik beim Seitenaufruf
     window.onload = async () => {
         try {
-            // Initialisiert den Client sicher
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             const savedUser = localStorage.getItem('vp_username');
@@ -204,7 +203,6 @@
     async function performLogin(username, password) {
         if (!supabaseClient) return false;
 
-        // .ilike ignoriert Groß-/Kleinschreibung beim Login-Namen
         const { data: account, error } = await supabaseClient
             .from('accounts')
             .select('*')
@@ -218,7 +216,7 @@
         }
 
         currentUsername = account.name;
-        currentUserRole = account.role; // Rolle auslesen
+        currentUserRole = account.role; 
         await loadUserData();
         return true;
     }
@@ -240,11 +238,10 @@
 
         if (account) {
             currentUserBalance = parseFloat(account.balance);
-            currentUserRole = account.role; // Sicherheits-Update für die Rolle
+            currentUserRole = account.role; 
             
             document.getElementById('user-info').innerText = "Angemeldet als: " + currentUsername + " (" + currentUserRole + ")";
             
-            // Unendlich-Guthaben-Anzeige für Admins
             if (currentUserRole === 'admin') {
                 document.getElementById('balance-display').innerText = "∞ §";
             } else {
@@ -257,11 +254,13 @@
         loadTransactions();
     }
 
+    // Holt alle Gutscheine, bei denen der User der 'owner' ist UND die Spalte 'eingeloest' = 1 ist
     async function loadMyVouchers() {
         const { data: vouchers } = await supabaseClient
             .from('vouchers')
             .select('*')
-            .eq('owner', currentUsername);
+            .eq('owner', currentUsername)
+            .eq('eingeloest', 1); // <-- NEU: Zeigt nur wirklich eingelöste Gutscheine an
 
         const tbody = document.getElementById('vouchers-tbody');
         tbody.innerHTML = "";
@@ -326,7 +325,7 @@
 
     // ====== AKTIONEN ======
 
-    // 1. Gutschein einlösen
+    // Gutschein einlösen unter Berücksichtigung der Spalte 'eingeloest' (0 oder 1)
     async function redeemVoucher() {
         const codeInput = document.getElementById('redeem-input').value.trim();
         const msg = document.getElementById('redeem-msg');
@@ -345,17 +344,23 @@
             return;
         }
 
-        if (voucher.owner) {
+        // <-- KORREKTUR: Prüft jetzt die neue Spalte 'eingeloest' auf den Wert 1
+        if (voucher.eingeloest === 1 || voucher.owner) {
             msg.style.color = "var(--danger)";
-            msg.innerText = `Dieser Gutschein wurde bereits von '${voucher.owner}' eingelöst.`;
+            msg.innerText = `Dieser Gutschein wurde bereits eingelöst.`;
             return;
         }
 
         const voucherValue = parseFloat(voucher.value);
 
-        await supabaseClient.from('vouchers').update({ owner: currentUsername }).eq('id', voucher.id);
+        // <-- KORREKTUR: Setzt 'eingeloest' auf 1 und trägt den 'owner' ein
+        await supabaseClient.from('vouchers')
+            .update({ 
+                owner: currentUsername,
+                eingeloest: 1 
+            })
+            .eq('id', voucher.id);
         
-        // Guthaben nur erhöhen, wenn es kein Admin ist (da Admins ohnehin unendlich haben)
         if (currentUserRole !== 'admin') {
             await supabaseClient.from('accounts').update({ balance: currentUserBalance + voucherValue }).eq('name', currentUsername);
         }
@@ -374,7 +379,7 @@
         await loadUserData();
     }
 
-    // 2. Geld überweisen
+    // Geld überweisen
     async function sendMoney() {
         const amount = parseFloat(document.getElementById('send-amount').value);
         const receiverName = document.getElementById('send-receiver').value;
@@ -387,7 +392,6 @@
             return;
         }
 
-        // Admin-Schutzschalter: Nur normale Benutzer werden blockiert, wenn das Guthaben zu gering ist
         if (currentUserRole !== 'admin' && amount > currentUserBalance) {
             statusMsg.style.color = "var(--danger)";
             statusMsg.innerText = "Fehler: Unzureichendes Guthaben.";
@@ -408,15 +412,12 @@
 
         const recBalance = parseFloat(receiverAccount.balance);
 
-        // Geld abziehen (NUR wenn man kein Admin ist)
         if (currentUserRole !== 'admin') {
             await supabaseClient.from('accounts').update({ balance: currentUserBalance - amount }).eq('name', currentUsername);
         }
         
-        // Empfänger erhält das Geld IMMER
         await supabaseClient.from('accounts').update({ balance: recBalance + amount }).eq('name', receiverName);
         
-        // Transaktion eintragen
         await supabaseClient.from('transactions').insert({
             sender: currentUsername,
             receiver: receiverName,
