@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay 1.0</title>
+    <title>VoucherPay 1.1</title>
     <link rel="icon" href="data:,">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -29,13 +29,13 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--txt); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar */
+        /* Sidebar Navigation */
         .sidebar { width: 280px; background: #fff; border-right: 1px solid #e2e8f0; padding: 35px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
         .logo { font-size: 1.5rem; font-weight: 800; color: var(--p); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
         .nav-item { padding: 14px 18px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; color: var(--txt-m); font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
         .nav-item:hover, .nav-item.active { background: var(--p); color: #fff; }
 
-        /* Main Content */
+        /* Hauptinhalt */
         .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
@@ -43,18 +43,18 @@
         .card { background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid #f1f5f9; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 25px; }
         .balance-card { background: linear-gradient(135deg, var(--p), #a855f7); color: #fff; border: none; text-align: center; }
 
-        /* Controls */
+        /* Formularelemente */
         input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; background: #fdfdfd; }
         button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--p); color: #fff; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         button:hover { background: var(--p-dark); transform: translateY(-1px); }
         .btn-sec { background: var(--success); }
 
-        /* Tables */
+        /* Tabellen-Design */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th { text-align: left; font-size: 12px; color: var(--txt-m); text-transform: uppercase; padding: 10px; }
         td { padding: 15px 10px; border-top: 1px solid #f1f5f9; font-size: 14px; }
 
-        /* Overlays & Views */
+        /* Login-Maske */
         .overlay { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
         .view.active { display: block; }
@@ -110,8 +110,7 @@
                     <thead>
                         <tr><th>Code</th><th>Wert</th><th>Status</th></tr>
                     </thead>
-                    <tbody id="vouchers-tbody">
-                        </tbody>
+                    <tbody id="vouchers-tbody"></tbody>
                 </table>
             </div>
         </div>
@@ -135,8 +134,7 @@
                     <thead>
                         <tr><th>Typ</th><th>Partner</th><th>Betrag</th><th>Nachricht</th></tr>
                     </thead>
-                    <tbody id="history-tbody">
-                        </tbody>
+                    <tbody id="history-tbody"></tbody>
                 </table>
             </div>
         </div>
@@ -145,18 +143,18 @@
 </div>
 
 <script>
- // ====== SUPABASE INSTANZIERUNG ======
-    const SUPABASE_URL = "DEINE_SUPABASE_URL"; 
-    const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
+    // ====== SUPABASE DATEN & INITIALISIERUNG ======
+    const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
+    const SUPABASE_ANON_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd";
     
-    let supabaseClient = null; // Das globale Client-Objekt
+    let supabaseClient = null;
     let currentUsername = ""; 
     let currentUserBalance = 0;
 
-    // Automatischer Login beim Laden der Seite
+    // Start-Logik beim Seitenaufruf
     window.onload = async () => {
         try {
-            // Initialisierung über window.supabase, um Konflikte zu vermeiden
+            // Initialisiert die Bibliothek fehlerfrei über das geladene globale window-Objekt
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             const savedUser = localStorage.getItem('vp_username');
@@ -169,7 +167,7 @@
                 showLoginScreen();
             }
         } catch (err) {
-            console.error("Supabase konnte nicht initialisiert werden:", err);
+            console.error("Kritischer Fehler bei der Initialisierung:", err);
             document.getElementById('lErr').innerText = "Verbindungsfehler zu Supabase.";
             showLoginScreen();
         }
@@ -179,7 +177,7 @@
         document.getElementById('login-screen').style.display = 'flex';
     }
 
-    // ====== AUTHENTIFIZIERUNG ======
+    // ====== LOGIN LOGIK (ABFRAGE ÜBER DIE TABELLE 'ACCOUNTS') ======
     async function handleLogin() {
         const user = document.getElementById('lUser').value.trim();
         const pass = document.getElementById('lPass').value;
@@ -203,13 +201,8 @@
     }
 
     async function performLogin(username, password) {
-        // Sicherstellen, dass der Client geladen wurde
-        if (!supabaseClient) {
-            console.error("Supabase-Client ist nicht initialisiert.");
-            return false;
-        }
+        if (!supabaseClient) return false;
 
-        // KORREKTUR: Hier muss supabaseClient stehen!
         const { data: account, error } = await supabaseClient
             .from('accounts')
             .select('*')
@@ -218,7 +211,7 @@
             .maybeSingle(); 
 
         if (error || !account) {
-            console.log("Login-Fehler oder kein Account gefunden:", error);
+            console.log("Login-Fehler oder falsche Daten:", error);
             return false;
         }
 
@@ -232,10 +225,11 @@
         location.reload();
     }
 
-    // ====== DATA LOADER ENGINE ======
+    // ====== DYNAMISCHE DATEN AUS SUPABASE LADEN ======
     async function loadUserData() {
         document.getElementById('login-screen').style.display = 'none';
         
+        // Aktuellen Kontostand aus 'accounts' holen
         const { data: account } = await supabaseClient
             .from('accounts')
             .select('balance')
@@ -248,11 +242,13 @@
             document.getElementById('balance-display').innerText = currentUserBalance.toFixed(2) + " §";
         }
 
+        // Restliche Benutzeroberfläche laden
         loadMyVouchers();
         loadDropdownUsers();
         loadTransactions();
     }
 
+    // Holt alle Gutscheine, bei denen der User eingetragen ist
     async function loadMyVouchers() {
         const { data: vouchers } = await supabaseClient
             .from('vouchers')
@@ -264,13 +260,14 @@
 
         if (vouchers && vouchers.length > 0) {
             vouchers.forEach(v => {
-                tbody.innerHTML += `<tr><td>${v.code}</td><td>${parseFloat(v.value).toFixed(2)} §</td><td style="color: var(--txt-m); font-weight:600;">Eingelöst</td></tr>`;
+                tbody.innerHTML += `<tr><td>${v.code}</td><td>${parseFloat(v.value).toFixed(2)} §</td><td style="color: var(--success); font-weight:600;">Eingelöst</td></tr>`;
             });
         } else {
             tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--txt-m)">Noch keine Gutscheine eingelöst.</td></tr>`;
         }
     }
 
+    // Füllt das Dropdown-Menü beim Geld senden mit allen anderen Accounts
     async function loadDropdownUsers() {
         const { data: users } = await supabaseClient
             .from('accounts')
@@ -287,6 +284,7 @@
         }
     }
 
+    // Transaktionen laden (Eingehend und Ausgehend)
     async function loadTransactions() {
         const { data: txs } = await supabaseClient
             .from('transactions')
@@ -320,8 +318,9 @@
         }
     }
 
-    // ====== TRANSAKTIONS-AKTIONEN ======
+    // ====== AKTIONEN ======
 
+    // 1. Gutscheinsystem
     async function redeemVoucher() {
         const codeInput = document.getElementById('redeem-input').value.trim();
         const msg = document.getElementById('redeem-msg');
@@ -348,6 +347,7 @@
 
         const voucherValue = parseFloat(voucher.value);
 
+        // Updates durchführen
         await supabaseClient.from('vouchers').update({ owner: currentUsername }).eq('id', voucher.id);
         await supabaseClient.from('accounts').update({ balance: currentUserBalance + voucherValue }).eq('name', currentUsername);
         
@@ -365,6 +365,7 @@
         await loadUserData();
     }
 
+    // 2. Geld überweisen
     async function sendMoney() {
         const amount = parseFloat(document.getElementById('send-amount').value);
         const receiverName = document.getElementById('send-receiver').value;
@@ -397,6 +398,7 @@
 
         const recBalance = parseFloat(receiverAccount.balance);
 
+        // Balancen updaten & Transaktion schreiben
         await supabaseClient.from('accounts').update({ balance: currentUserBalance - amount }).eq('name', currentUsername);
         await supabaseClient.from('accounts').update({ balance: recBalance + amount }).eq('name', receiverName);
         
@@ -415,7 +417,7 @@
         await loadUserData();
     }
 
-    // ====== NAV ENGINE ======
+    // ====== NAV ENGINE (TAB-STEUERUNG) ======
     function showView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
