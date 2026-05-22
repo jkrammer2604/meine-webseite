@@ -146,25 +146,31 @@
 
 <script>
  // ====== SUPABASE INSTANZIERUNG ======
-    const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
-    const SUPABASE_ANON_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd";
+    const SUPABASE_URL = "DEINE_SUPABASE_URL"; 
+    const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
     
-    // WICHTIG: window.supabase verwenden, um Namenskonflikte zu vermeiden
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null; // Das globale Client-Objekt
     let currentUsername = ""; 
     let currentUserBalance = 0;
 
-    // Automatischer Login beim Laden der Seite, falls Daten im LocalStorage vorhanden sind
+    // Automatischer Login beim Laden der Seite
     window.onload = async () => {
-        const savedUser = localStorage.getItem('vp_username');
-        const savedPass = localStorage.getItem('vp_password');
-        
-        if (savedUser && savedPass) {
-            const success = await performLogin(savedUser, savedPass);
-            if (!success) {
+        try {
+            // Initialisierung über window.supabase, um Konflikte zu vermeiden
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            const savedUser = localStorage.getItem('vp_username');
+            const savedPass = localStorage.getItem('vp_password');
+            
+            if (savedUser && savedPass) {
+                const success = await performLogin(savedUser, savedPass);
+                if (!success) showLoginScreen();
+            } else {
                 showLoginScreen();
             }
-        } else {
+        } catch (err) {
+            console.error("Supabase konnte nicht initialisiert werden:", err);
+            document.getElementById('lErr').innerText = "Verbindungsfehler zu Supabase.";
             showLoginScreen();
         }
     };
@@ -173,11 +179,18 @@
         document.getElementById('login-screen').style.display = 'flex';
     }
 
-    // ====== AUTHENTIFIZIERUNG ÜBER DIE 'ACCOUNTS' TABELLE ======
+    // ====== AUTHENTIFIZIERUNG ======
     async function handleLogin() {
         const user = document.getElementById('lUser').value.trim();
         const pass = document.getElementById('lPass').value;
         const errMsg = document.getElementById('lErr');
+
+        if(!user || !pass) {
+            errMsg.innerText = "Bitte Benutzername und Passwort eingeben.";
+            return;
+        }
+
+        errMsg.innerText = "Prüfe Zugangsdaten...";
 
         const success = await performLogin(user, pass);
         if (success) {
@@ -190,14 +203,22 @@
     }
 
     async function performLogin(username, password) {
-        const { data: account, error } = await supabase
+        // Sicherstellen, dass der Client geladen wurde
+        if (!supabaseClient) {
+            console.error("Supabase-Client ist nicht initialisiert.");
+            return false;
+        }
+
+        // KORREKTUR: Hier muss supabaseClient stehen!
+        const { data: account, error } = await supabaseClient
             .from('accounts')
             .select('*')
             .eq('name', username)
             .eq('pass', password)
-            .single();
+            .maybeSingle(); 
 
         if (error || !account) {
+            console.log("Login-Fehler oder kein Account gefunden:", error);
             return false;
         }
 
@@ -215,8 +236,7 @@
     async function loadUserData() {
         document.getElementById('login-screen').style.display = 'none';
         
-        // 1. Aktuellen Kontostand aus 'accounts' abrufen
-        const { data: account } = await supabase
+        const { data: account } = await supabaseClient
             .from('accounts')
             .select('balance')
             .eq('name', currentUsername)
@@ -228,15 +248,13 @@
             document.getElementById('balance-display').innerText = currentUserBalance.toFixed(2) + " §";
         }
 
-        // Parallel die restlichen Ansichten befüllen
         loadMyVouchers();
         loadDropdownUsers();
         loadTransactions();
     }
 
-    // Gutscheine laden, bei denen der aktuelle User der 'owner' ist
     async function loadMyVouchers() {
-        const { data: vouchers } = await supabase
+        const { data: vouchers } = await supabaseClient
             .from('vouchers')
             .select('*')
             .eq('owner', currentUsername);
@@ -253,9 +271,8 @@
         }
     }
 
-    // Alle anderen Usernamen für das Überweisungs-Dropdown laden
     async function loadDropdownUsers() {
-        const { data: users } = await supabase
+        const { data: users } = await supabaseClient
             .from('accounts')
             .select('name')
             .not('name', 'eq', currentUsername);
@@ -270,9 +287,8 @@
         }
     }
 
-    // Verlauf aus der 'transactions'-Tabelle auslesen
     async function loadTransactions() {
-        const { data: txs } = await supabase
+        const { data: txs } = await supabaseClient
             .from('transactions')
             .select('*')
             .or(`sender.eq.${currentUsername},receiver.eq.${currentUsername}`)
@@ -284,7 +300,6 @@
         if (txs && txs.length > 0) {
             txs.forEach(t => {
                 const isSender = t.sender === currentUsername;
-                
                 const typeHTML = isSender 
                     ? `<span style="color:var(--danger)"><i class="fas fa-arrow-up"></i> Gesendet</span>` 
                     : `<span style="color:var(--success)"><i class="fas fa-arrow-down"></i> Erhalten</span>`;
@@ -307,19 +322,17 @@
 
     // ====== TRANSAKTIONS-AKTIONEN ======
 
-    // 1. Gutschein einlösen
     async function redeemVoucher() {
         const codeInput = document.getElementById('redeem-input').value.trim();
         const msg = document.getElementById('redeem-msg');
         
         if (!codeInput) return;
 
-        // Gutschein suchen, der noch keinen Owner hat (owner IS NULL)
-        const { data: voucher, error } = await supabase
+        const { data: voucher, error } = await supabaseClient
             .from('vouchers')
             .select('*')
             .eq('code', codeInput)
-            .single();
+            .maybeSingle();
 
         if (error || !voucher) {
             msg.style.color = "var(--danger)";
@@ -335,14 +348,10 @@
 
         const voucherValue = parseFloat(voucher.value);
 
-        // A) Gutschein als eingelöst markieren (owner setzen)
-        await supabase.from('vouchers').update({ owner: currentUsername }).eq('id', voucher.id);
-
-        // B) Kontostand des Users erhöhen
-        await supabase.from('accounts').update({ balance: currentUserBalance + voucherValue }).eq('name', currentUsername);
+        await supabaseClient.from('vouchers').update({ owner: currentUsername }).eq('id', voucher.id);
+        await supabaseClient.from('accounts').update({ balance: currentUserBalance + voucherValue }).eq('name', currentUsername);
         
-        // C) In den Transaktionsverlauf eintragen
-        await supabase.from('transactions').insert({
+        await supabaseClient.from('transactions').insert({
             sender: "System",
             receiver: currentUsername,
             amount: voucherValue,
@@ -356,7 +365,6 @@
         await loadUserData();
     }
 
-    // 2. Geld senden (Überweisung)
     async function sendMoney() {
         const amount = parseFloat(document.getElementById('send-amount').value);
         const receiverName = document.getElementById('send-receiver').value;
@@ -375,8 +383,7 @@
             return;
         }
 
-        // Kontostand des Empfängers abfragen
-        const { data: receiverAccount } = await supabase
+        const { data: receiverAccount } = await supabaseClient
             .from('accounts')
             .select('balance')
             .eq('name', receiverName)
@@ -390,14 +397,10 @@
 
         const recBalance = parseFloat(receiverAccount.balance);
 
-        // A) Eigenen Kontostand verringern
-        await supabase.from('accounts').update({ balance: currentUserBalance - amount }).eq('name', currentUsername);
+        await supabaseClient.from('accounts').update({ balance: currentUserBalance - amount }).eq('name', currentUsername);
+        await supabaseClient.from('accounts').update({ balance: recBalance + amount }).eq('name', receiverName);
         
-        // B) Empfänger-Kontostand erhöhen
-        await supabase.from('accounts').update({ balance: recBalance + amount }).eq('name', receiverName);
-        
-        // C) Transaktion loggen
-        await supabase.from('transactions').insert({
+        await supabaseClient.from('transactions').insert({
             sender: currentUsername,
             receiver: receiverName,
             amount: amount,
@@ -412,7 +415,7 @@
         await loadUserData();
     }
 
-    // ====== NAV ENGINE (TAB-WECHSEL) ======
+    // ====== NAV ENGINE ======
     function showView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
