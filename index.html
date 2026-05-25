@@ -3,448 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoucherPay 2.0</title>
-    <link rel="icon" href="data:,">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title>Mein Inventurprogramm</title>
     <style>
-        :root {
-            --p: #6366f1; 
-            --p-dark: #4f46e5; 
-            --bg: #f8fafc;
-            --card: #ffffff; 
-            --txt: #0f172a; 
-            --txt-m: #64748b;
-            --success: #10b981; 
-            --danger: #ef4444; 
-            --radius: 18px;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f4f4f9;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--txt); display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar Navigation */
-        .sidebar { width: 280px; background: #fff; border-right: 1px solid #e2e8f0; padding: 35px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--p); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
-        .nav-item { padding: 14px 18px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; color: var(--txt-m); font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
-        .nav-item:hover, .nav-item.active { background: var(--p); color: #fff; }
-
-        /* Hauptinhalt */
-        .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 900px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        
-        .card { background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid #f1f5f9; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .balance-card { background: linear-gradient(135deg, var(--p), #a855f7); color: #fff; border: none; text-align: center; }
-
-        /* Formularelemente */
-        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; background: #fdfdfd; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--p); color: #fff; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        button:hover { background: var(--p-dark); transform: translateY(-1px); }
-        .btn-sec { background: var(--success); }
-
-        /* Tabellen-Design */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; font-size: 12px; color: var(--txt-m); text-transform: uppercase; padding: 10px; }
-        td { padding: 15px 10px; border-top: 1px solid #f1f5f9; font-size: 14px; }
-
-        /* Login-Maske */
-        .overlay { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
-        .view.active { display: block; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input [type="text"], input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="text"] { flex: 2; }
+        input[type="number"] { flex: 1; }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #218838; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background-color: #007bff; color: white; }
+        .delete-btn {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn:hover { background-color: #bd2130; }
     </style>
 </head>
 <body>
 
-<div id="login-screen" class="overlay">
-    <div style="background:#fff; padding:45px; border-radius:25px; width:100%; max-width:400px; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
-        <h2 style="text-align:center; margin-bottom:30px; color: #0f172a;">VoucherPay Login</h2>
-        <input type="text" id="lUser" placeholder="Benutzername (z.B. Jakob)">
-        <input type="password" id="lPass" placeholder="Passwort">
-        <button onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Anmelden</button>
-        <p id="lErr" style="color:var(--danger); text-align:center; margin-top:15px; font-size:13px; font-weight: 600;"></p>
+    <h1>📦 Lager-Inventur</h1>
+
+    <div class="form-group">
+        <input type="text" id="artikelName" placeholder="Artikelname (z.B. Laptops)">
+        <input type="number" id="artikelMenge" placeholder="Menge" min="0" value="1">
+        <button onclick="artikelHinzufuegen()">Hinzufügen</button>
     </div>
-</div>
 
-<div class="sidebar">
-    <div class="logo"><i class="fas fa-bolt"></i> VoucherPay</div>
-    <div class="nav-item active" onclick="showView('dash')" id="n-dash"><i class="fas fa-th-large"></i> Dashboard</div>
-    <div class="nav-item" onclick="showView('send')" id="n-send"><i class="fas fa-paper-plane"></i> Senden</div>
-    <div class="nav-item" onclick="showView('hist')" id="n-hist"><i class="fas fa-history"></i> Verlauf</div>
-    <button onclick="handleLogout()" style="margin-top:auto; background:#fee2e2; color:#b91c1c;"><i class="fas fa-power-off"></i> Logout</button>
-</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Artikel</th>
+                <th>Menge</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody id="inventurListe">
+            </tbody>
+    </table>
 
-<div class="main">
-    <div class="container">
-        <div class="header">
-            <h1 id="view-title">Dashboard</h1>
-            <div id="user-info" style="text-align:right; font-weight:600;">Lade Profil...</div>
-        </div>
-
-        <div id="v-dash" class="view active">
-            <div class="card balance-card">
-                <p style="opacity:0.9;">Aktuelles Guthaben</p>
-                <h1 id="balance-display" style="font-size:3.5rem; font-weight:800; margin:10px 0;">0.00 §</h1>
-            </div>
-
-            <div class="card">
-                <h3>Gutschein einlösen</h3>
-                <div style="display:flex; gap:12px; margin-top:15px;">
-                    <input type="text" id="redeem-input" placeholder="Code hier eingeben..." style="margin:0;">
-                    <button class="btn-sec" onclick="redeemVoucher()" style="width:140px;">Einlösen</button>
-                </div>
-                <p id="redeem-msg" style="margin-top:12px; font-size:13px; font-weight:600; text-align:center;"></p>
-            </div>
-
-            <div class="card">
-                <h3>Meine eingelösten Gutscheine</h3>
-                <table>
-                    <thead>
-                        <tr><th>Code</th><th>Wert</th><th>Status</th></tr>
-                    </thead>
-                    <tbody id="vouchers-tbody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="v-send" class="view">
-            <div class="card">
-                <h3>Geld überweisen</h3>
-                <input type="number" id="send-amount" placeholder="Betrag in §" step="0.01">
-                <select id="send-receiver">
-                    </select>
-                <textarea id="send-msg" placeholder="Nachricht (optional)"></textarea>
-                <button onclick="sendMoney()"><i class="fas fa-check-circle"></i> Jetzt senden</button>
-                <p id="send-status-msg" style="margin-top:12px; font-size:13px; font-weight:600; text-align:center;"></p>
-            </div>
-        </div>
-
-        <div id="v-hist" class="view">
-            <div class="card">
-                <h3>Transaktionsverlauf</h3>
-                <table>
-                    <thead>
-                        <tr><th>Typ</th><th>Partner</th><th>Betrag</th><th>Nachricht</th></tr>
-                    </thead>
-                    <tbody id="history-tbody"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<script>
-    // ====== SUPABASE DATEN & INITIALISIERUNG ======
-    const SUPABASE_URL = "https://cilvtkbochcuanmakrgq.supabase.co"; 
-    const SUPABASE_ANON_KEY = "sb_publishable_coOF7Q0OugnqGltdZ5P3Vw_IEa5PRwd";
-    
-    let supabaseClient = null;
-    let currentUsername = ""; 
-    let currentUserBalance = 0;
-    let currentUserRole = ""; 
-
-    // Start-Logik beim Seitenaufruf
-    window.onload = async () => {
-        try {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <script>
+        function artikelHinzufuegen() {
+            // Werte aus den Eingabefeldern holen
+            const nameInput = document.getElementById('artikelName');
+            const mengeInput = document.getElementById('artikelMenge');
             
-            const savedUser = localStorage.getItem('vp_username');
-            const savedPass = localStorage.getItem('vp_password');
-            
-            if (savedUser && savedPass) {
-                const success = await performLogin(savedUser, savedPass);
-                if (!success) showLoginScreen();
-            } else {
-                showLoginScreen();
+            const name = nameInput.value.trim();
+            const menge = mengeInput.value;
+
+            // Validierung: Wenn der Name leer ist, mach nichts
+            if (name === '') {
+                alert('Bitte einen Artikelnamen eingeben!');
+                return;
             }
-        } catch (err) {
-            console.error("Kritischer Fehler bei der Initialisierung:", err);
-            document.getElementById('lErr').innerText = "Verbindungsfehler zu Supabase.";
-            showLoginScreen();
-        }
-    };
 
-    function showLoginScreen() {
-        document.getElementById('login-screen').style.display = 'flex';
-    }
+            // Tabelle anvisieren
+            const liste = document.getElementById('inventurListe');
 
-    // ====== LOGIN LOGIK ======
-    async function handleLogin() {
-        const user = document.getElementById('lUser').value.trim();
-        const pass = document.getElementById('lPass').value;
-        const errMsg = document.getElementById('lErr');
+            // Neue Tabellenzeile erstellen
+            const zeile = document.createElement('tr');
 
-        if(!user || !pass) {
-            errMsg.innerText = "Bitte Benutzername und Passwort eingeben.";
-            return;
-        }
+            zeile.innerHTML = `
+                <td>${name}</td>
+                <td>${menge}</td>
+                <td><button class="delete-btn" onclick="zeileLoeschen(this)">Löschen</button></td>
+            `;
 
-        errMsg.innerText = "Prüfe Zugangsdaten...";
+            // Zeile zur Tabelle hinzufügen
+            liste.appendChild(zeile);
 
-        const success = await performLogin(user, pass);
-        if (success) {
-            localStorage.setItem('vp_username', user);
-            localStorage.setItem('vp_password', pass);
-            errMsg.innerText = "";
-        } else {
-            errMsg.innerText = "Fehler: Ungültiger Benutzername oder Passwort.";
-        }
-    }
-
-    async function performLogin(username, password) {
-        if (!supabaseClient) return false;
-
-        const { data: account, error } = await supabaseClient
-            .from('accounts')
-            .select('*')
-            .ilike('name', username.trim())
-            .eq('pass', password)
-            .maybeSingle(); 
-
-        if (error || !account) {
-            console.log("Login-Fehler oder falsche Daten:", error);
-            return false;
+            // Felder nach dem Hinzufügen wieder leeren
+            nameInput.value = '';
+            mengeInput.value = '1';
         }
 
-        currentUsername = account.name;
-        currentUserRole = account.role; 
-        await loadUserData();
-        return true;
-    }
-
-    function handleLogout() {
-        localStorage.clear();
-        location.reload();
-    }
-
-    // ====== DATA LOADER ENGINE ======
-    async function loadUserData() {
-        document.getElementById('login-screen').style.display = 'none';
-        
-        const { data: account } = await supabaseClient
-            .from('accounts')
-            .select('*')
-            .eq('name', currentUsername)
-            .single();
-
-        if (account) {
-            currentUserBalance = parseFloat(account.balance);
-            currentUserRole = account.role; 
-            
-            document.getElementById('user-info').innerText = "Angemeldet als: " + currentUsername + " (" + currentUserRole + ")";
-            
-            if (currentUserRole === 'admin') {
-                document.getElementById('balance-display').innerText = "∞ §";
-            } else {
-                document.getElementById('balance-display').innerText = currentUserBalance.toFixed(2) + " §";
-            }
+        function zeileLoeschen(button) {
+            // Entfernt die Zeile, in der sich der geklickte Button befindet
+            const zeile = button.parentElement.parentElement;
+            zeile.remove();
         }
-
-        loadMyVouchers();
-        loadDropdownUsers();
-        loadTransactions();
-    }
-
-    // Holt alle Gutscheine, bei denen der User der 'owner' ist UND die Spalte 'eingeloest' = 1 ist
-    async function loadMyVouchers() {
-        const { data: vouchers } = await supabaseClient
-            .from('vouchers')
-            .select('*')
-            .eq('owner', currentUsername)
-            .eq('eingeloest', 1); // <-- NEU: Zeigt nur wirklich eingelöste Gutscheine an
-
-        const tbody = document.getElementById('vouchers-tbody');
-        tbody.innerHTML = "";
-
-        if (vouchers && vouchers.length > 0) {
-            vouchers.forEach(v => {
-                tbody.innerHTML += `<tr><td>${v.code}</td><td>${parseFloat(v.value).toFixed(2)} §</td><td style="color: var(--success); font-weight:600;">Eingelöst</td></tr>`;
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--txt-m)">Noch keine Gutscheine eingelöst.</td></tr>`;
-        }
-    }
-
-    async function loadDropdownUsers() {
-        const { data: users } = await supabaseClient
-            .from('accounts')
-            .select('name')
-            .not('name', 'eq', currentUsername);
-
-        const select = document.getElementById('send-receiver');
-        select.innerHTML = "";
-        
-        if (users) {
-            users.forEach(u => {
-                select.innerHTML += `<option value="${u.name}">${u.name}</option>`;
-            });
-        }
-    }
-
-    async function loadTransactions() {
-        const { data: txs } = await supabaseClient
-            .from('transactions')
-            .select('*')
-            .or(`sender.eq.${currentUsername},receiver.eq.${currentUsername}`)
-            .order('created_at', { ascending: false });
-
-        const tbody = document.getElementById('history-tbody');
-        tbody.innerHTML = "";
-
-        if (txs && txs.length > 0) {
-            txs.forEach(t => {
-                const isSender = t.sender === currentUsername;
-                const typeHTML = isSender 
-                    ? `<span style="color:var(--danger)"><i class="fas fa-arrow-up"></i> Gesendet</span>` 
-                    : `<span style="color:var(--success)"><i class="fas fa-arrow-down"></i> Erhalten</span>`;
-                
-                const partner = isSender ? (t.receiver || "Unbekannt") : (t.sender || "System");
-                const amountText = (isSender ? "-" : "+") + parseFloat(t.amount).toFixed(2) + " §";
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${typeHTML}</td>
-                        <td>${partner}</td>
-                        <td style="font-weight:600;">${amountText}</td>
-                        <td>${t.message || ''}</td>
-                    </tr>`;
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--txt-m)">Noch keine Transaktionen vorhanden.</td></tr>`;
-        }
-    }
-
-    // ====== AKTIONEN ======
-
-    // Gutschein einlösen unter Berücksichtigung der Spalte 'eingeloest' (0 oder 1)
-    async function redeemVoucher() {
-        const codeInput = document.getElementById('redeem-input').value.trim();
-        const msg = document.getElementById('redeem-msg');
-        
-        if (!codeInput) return;
-
-        const { data: voucher, error } = await supabaseClient
-            .from('vouchers')
-            .select('*')
-            .eq('code', codeInput)
-            .maybeSingle();
-
-        if (error || !voucher) {
-            msg.style.color = "var(--danger)";
-            msg.innerText = "Gutscheincode existiert nicht.";
-            return;
-        }
-
-        // <-- KORREKTUR: Prüft jetzt die neue Spalte 'eingeloest' auf den Wert 1
-        if (voucher.eingeloest === 1 || voucher.owner) {
-            msg.style.color = "var(--danger)";
-            msg.innerText = `Dieser Gutschein wurde bereits eingelöst.`;
-            return;
-        }
-
-        const voucherValue = parseFloat(voucher.value);
-
-        // <-- KORREKTUR: Setzt 'eingeloest' auf 1 und trägt den 'owner' ein
-        await supabaseClient.from('vouchers')
-            .update({ 
-                owner: currentUsername,
-                eingeloest: 1 
-            })
-            .eq('id', voucher.id);
-        
-        if (currentUserRole !== 'admin') {
-            await supabaseClient.from('accounts').update({ balance: currentUserBalance + voucherValue }).eq('name', currentUsername);
-        }
-        
-        await supabaseClient.from('transactions').insert({
-            sender: "System",
-            receiver: currentUsername,
-            amount: voucherValue,
-            message: `Gutschein eingelöst: ${voucher.code}`
-        });
-
-        msg.style.color = "var(--success)";
-        msg.innerText = `Erfolgreich! ${voucherValue.toFixed(2)} § wurden gutgeschrieben.`;
-        document.getElementById('redeem-input').value = "";
-        
-        await loadUserData();
-    }
-
-    // Geld überweisen
-    async function sendMoney() {
-        const amount = parseFloat(document.getElementById('send-amount').value);
-        const receiverName = document.getElementById('send-receiver').value;
-        const sendMsg = document.getElementById('send-msg').value;
-        const statusMsg = document.getElementById('send-status-msg');
-
-        if (!amount || amount <= 0) {
-            statusMsg.style.color = "var(--danger)";
-            statusMsg.innerText = "Bitte gib einen gültigen Betrag ein.";
-            return;
-        }
-
-        if (currentUserRole !== 'admin' && amount > currentUserBalance) {
-            statusMsg.style.color = "var(--danger)";
-            statusMsg.innerText = "Fehler: Unzureichendes Guthaben.";
-            return;
-        }
-
-        const { data: receiverAccount } = await supabaseClient
-            .from('accounts')
-            .select('balance')
-            .eq('name', receiverName)
-            .single();
-
-        if (!receiverAccount) {
-            statusMsg.style.color = "var(--danger)";
-            statusMsg.innerText = "Fehler: Empfänger-Account nicht gefunden.";
-            return;
-        }
-
-        const recBalance = parseFloat(receiverAccount.balance);
-
-        if (currentUserRole !== 'admin') {
-            await supabaseClient.from('accounts').update({ balance: currentUserBalance - amount }).eq('name', currentUsername);
-        }
-        
-        await supabaseClient.from('accounts').update({ balance: recBalance + amount }).eq('name', receiverName);
-        
-        await supabaseClient.from('transactions').insert({
-            sender: currentUsername,
-            receiver: receiverName,
-            amount: amount,
-            message: sendMsg
-        });
-
-        statusMsg.style.color = "var(--success)";
-        statusMsg.innerText = `Erfolgreich ${amount.toFixed(2)} § an ${receiverName} überwiesen!`;
-        document.getElementById('send-amount').value = "";
-        document.getElementById('send-msg').value = "";
-
-        await loadUserData();
-    }
-
-    // ====== NAV ENGINE ======
-    function showView(viewId) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-        document.getElementById('v-' + viewId).classList.add('active');
-        document.getElementById('n-' + viewId).classList.add('active');
-
-        const titles = { 'dash': 'Dashboard', 'send': 'Geld senden', 'hist': 'Verlauf' };
-        document.getElementById('view-title').innerText = titles[viewId] || 'Portal';
-    }
-</script>
+    </script>
 
 </body>
 </html>
