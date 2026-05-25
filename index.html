@@ -3,125 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Inventurprogramm</title>
+    <title>Smart Inventur Pro</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 40px auto;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f4f4f9;
         }
+
         h1 {
-            color: #333;
             text-align: center;
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
         }
-        .form-group {
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            margin-bottom: 16px;
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 8px;
         }
-        input [type="text"], input[type="number"] {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+
+        /* Scanner Bereich */
+        #reader {
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px dashed var(--primary) !important;
+            background: #fafafa;
         }
-        input[type="text"] { flex: 2; }
-        input[type="number"] { flex: 1; }
+
+        /* Formular Styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        input {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
         button {
-            padding: 10px 15px;
-            background-color: #28a745;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 500;
             color: white;
+            background-color: var(--primary);
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            transition: background-color 0.2s;
         }
-        button:hover { background-color: #218838; }
+
+        button:hover { background-color: var(--primary-hover); }
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #dc2626; }
+
+        /* Tabellen Styling */
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 10px;
         }
+
         th, td {
-            padding: 12px;
+            padding: 14px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border);
         }
-        th { background-color: #007bff; color: white; }
-        .delete-btn {
-            background-color: #dc3545;
-            padding: 5px 10px;
-            font-size: 12px;
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
         }
-        .delete-btn:hover { background-color: #bd2130; }
+
+        tr.highlight {
+            background-color: #f0fdf4;
+            animation: flash 1.5s ease-out;
+        }
+
+        @keyframes flash {
+            0% { background-color: #bbf7d0; }
+            100% { background-color: #f0fdf4; }
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
 
-    <h1>📦 Lager-Inventur</h1>
+    <h1>📦 Smart Inventur Pro</h1>
 
-    <div class="form-group">
-        <input type="text" id="artikelName" placeholder="Artikelname (z.B. Laptops)">
-        <input type="number" id="artikelMenge" placeholder="Menge" min="0" value="1">
-        <button onclick="artikelHinzufuegen()">Hinzufügen</button>
+    <div class="card">
+        <h2>📷 Kamera-Scanner (Barcode / QR)</h2>
+        <div id="reader"></div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Artikel</th>
-                <th>Menge</th>
-                <th>Aktion</th>
-            </tr>
-        </thead>
-        <tbody id="inventurListe">
-            </tbody>
-    </table>
+    <div class="card">
+        <h2>✍️ Artikel hinzufügen / bearbeiten</h2>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="artikelName">Artikelname</label>
+                <input type="text" id="artikelName" placeholder="z.B. Packung Kaffee">
+            </div>
+            <div class="input-group">
+                <label for="artikelCode">Barcode / ID</label>
+                <input type="text" id="artikelCode" placeholder="Code (optional)">
+            </div>
+            <div class="input-group">
+                <label for="artikelMenge">Menge</label>
+                <input type="number" id="artikelMenge" value="1" min="0">
+            </div>
+            <button class="btn-success" onclick="artikelSpeichern()">Speichern</button>
+        </div>
+    </div>
+
+    <div class="card" style="overflow-x: auto;">
+        <h2>📋 Aktueller Bestand</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Barcode/ID</th>
+                    <th>Artikelname</th>
+                    <th>Menge</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody id="inventurListe">
+                </tbody>
+        </table>
+    </div>
 
     <script>
-        function artikelHinzufuegen() {
-            // Werte aus den Eingabefeldern holen
-            const nameInput = document.getElementById('artikelName');
-            const mengeInput = document.getElementById('artikelMenge');
-            
-            const name = nameInput.value.trim();
-            const menge = mengeInput.value;
+        // Startkonfiguration: Daten aus dem LocalStorage laden oder leeres Array erstellen
+        let inventar = JSON.parse(localStorage.getItem('inventarData')) || [];
 
-            // Validierung: Wenn der Name leer ist, mach nichts
-            if (name === '') {
-                alert('Bitte einen Artikelnamen eingeben!');
+        // App beim Laden initialisieren
+        window.onload = function() {
+            tabelleRendern();
+            scannerStarten();
+        };
+
+        // Funktion: Artikel hinzufügen oder aktualisieren
+        function artikelSpeichern() {
+            const name = document.getElementById('artikelName').value.trim();
+            const code = document.getElementById('artikelCode').value.trim();
+            const menge = parseInt(document.getElementById('artikelMenge').value) || 0;
+
+            if (!name) {
+                alert('Bitte gib mindestens einen Artikelnamen ein.');
                 return;
             }
 
-            // Tabelle anvisieren
-            const liste = document.getElementById('inventurListe');
+            // Prüfen, ob der Artikel anhand des Codes oder Namens bereits existiert
+            let existierenderArtikel = null;
+            if (code) {
+                existierenderArtikel = inventar.find(item => item.code === code);
+            } else {
+                existierenderArtikel = inventar.find(item => item.name.toLowerCase() === name.toLowerCase());
+            }
 
-            // Neue Tabellenzeile erstellen
-            const zeile = document.createElement('tr');
+            if (existierenderArtikel) {
+                // Wenn er existiert, Menge addieren
+                existierenderArtikel.menge += menge;
+            } else {
+                // Wenn neu, zum Array hinzufügen
+                inventar.push({
+                    id: Date.now().toString(),
+                    code: code || 'Kein Code',
+                    name: name,
+                    menge: menge
+                });
+            }
 
-            zeile.innerHTML = `
-                <td>${name}</td>
-                <td>${menge}</td>
-                <td><button class="delete-btn" onclick="zeileLoeschen(this)">Löschen</button></td>
-            `;
+            speichernUndAktualisieren();
+            formularLeeren();
 
-            // Zeile zur Tabelle hinzufügen
-            liste.appendChild(zeile);
-
-            // Felder nach dem Hinzufügen wieder leeren
-            nameInput.value = '';
-            mengeInput.value = '1';
+            // Highlighten falls Code vorhanden war
+            if (code) artikelHighlighten(code);
         }
 
-        function zeileLoeschen(button) {
-            // Entfernt die Zeile, in der sich der geklickte Button befindet
-            const zeile = button.parentElement.parentElement;
-            zeile.remove();
+        // Funktion: Zeile löschen
+        function artikelLoeschen(id) {
+            inventar = inventar.filter(item => item.id !== id);
+            speichernUndAktualisieren();
+        }
+
+        // Funktion: Menge direkt in der Tabelle ändern (+/- Buttons)
+        function mengeAendern(id, wert) {
+            const artikel = inventar.find(item => item.id === id);
+            if (artikel) {
+                artikel.menge += wert;
+                if (artikel.menge < 0) artikel.menge = 0;
+                speichernUndAktualisieren();
+            }
+        }
+
+        // Hilfsfunktion: In LocalStorage sichern und Tabelle neu zeichnen
+        function speichernUndAktualisieren() {
+            localStorage.setItem('inventarData', JSON.stringify(inventar));
+            tabelleRendern();
+        }
+
+        // Hilfsfunktion: Formularfelder zurücksetzen
+        function formularLeeren() {
+            document.getElementById('artikelName').value = '';
+            document.getElementById('artikelCode').value = '';
+            document.getElementById('artikelMenge').value = '1';
+        }
+
+        // Funktion: Tabelle auf Basis der Daten generieren
+        function tabelleRendern() {
+            const liste = document.getElementById('inventurListe');
+            liste.innerHTML = '';
+
+            if (inventar.length === 0) {
+                liste.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Keine Artikel im Inventar.</td></tr>`;
+                return;
+            }
+
+            inventar.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-code', item.code);
+                tr.innerHTML = `
+                    <td style="font-family: monospace; font-size: 0.9rem;">${item.code}</td>
+                    <strong><td>${item.name}</td></strong>
+                    <td><strong>${item.menge}</strong></td>
+                    <td class="actions">
+                        <button class="btn-small" onclick="mengeAendern('${item.id}', 1)">+</button>
+                        <button class="btn-small" onclick="mengeAendern('${item.id}', -1)">-</button>
+                        <button class="btn-small btn-danger" onclick="artikelLoeschen('${item.id}')">Löschen</button>
+                    </td>
+                `;
+                liste.appendChild(tr);
+            });
+        }
+
+        // Funktion: Einen gescannten/aktualisierten Artikel visuell hervorheben
+        function artikelHighlighten(code) {
+            if (!code || code === 'Kein Code') return;
+            const zeilen = document.querySelectorAll(`tr[data-code="${code}"]`);
+            zeilen.forEach(zeile => {
+                zeile.classList.add('highlight');
+                zeile.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => zeile.classList.remove('highlight'), 2000);
+            });
+        }
+
+        // --- KAMERA-SCANNER LOGIK ---
+        function scannerStarten() {
+            const html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", 
+                { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 150 },
+                    rememberLastUsedCamera: true
+                },
+                /* verbose= */ false
+            );
+
+            function onScanSuccess(decodedText, decodedResult) {
+                // Wenn ein Code gescannt wurde:
+                document.getElementById('artikelCode').value = decodedText;
+                
+                // Prüfen, ob der Code bereits im System ist
+                const treffer = inventar.find(item => item.code === decodedText);
+                
+                if (treffer) {
+                    // Artikel existiert -> Erhöhe Menge um 1 und speichere
+                    treffer.menge += 1;
+                    speichernUndAktualisieren();
+                    artikelHighlighten(decodedText);
+                    formularLeeren();
+                } else {
+                    // Artikel ist neu -> Fokus auf das Namensfeld setzen, damit der User tippen kann
+                    document.getElementById('artikelName').focus();
+                    // Kurzer Hinweis-Ton oder optisches Signal wäre hier möglich
+                }
+            }
+
+            function onScanFailure(error) {
+                // Fehler beim Scannen (kann ignoriert werden, da er permanent sucht)
+            }
+
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
         }
     </script>
-
 </body>
 </html>
