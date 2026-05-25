@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Inventur Pro - Zentriert</title>
+    <title>Smart Inventur Pro - Kontrollierter Scan</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
@@ -25,13 +25,13 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Alles horizontal zentrieren */
+            align-items: center;
             min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 600px; /* Kompakte, zentrierte Breite */
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -44,32 +44,6 @@
             margin-bottom: 10px;
         }
 
-        /* Zentrierte Tab-Navigation */
-        .tab-navigation {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .tab-btn {
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: 600;
-            background-color: #e2e8f0;
-            color: #475569;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
-        }
-
         .card {
             background: var(--card-bg);
             padding: 24px;
@@ -79,24 +53,14 @@
             width: 100%;
         }
 
-        /* Standardmäßig versteckte Tabs */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
         h2 {
             margin-top: 0;
             font-size: 1.25rem;
             margin-bottom: 20px;
-            text-align: center; /* Überschriften zentrieren */
+            text-align: center;
             color: #475569;
         }
 
-        /* Zentrierter Scanner-Bereich */
         #reader {
             width: 100%;
             border-radius: 12px;
@@ -105,41 +69,26 @@
             background: #fafafa;
         }
 
-        /* Zentriertes, einspaltiges Formular für bessere Übersicht */
-        .form-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            max-width: 400px;
-            margin: 0 auto; /* Formular innerhalb der Card zentrieren */
+        /* Overlay für die Scan-Pause */
+        .scan-overlay {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0fdf4;
+            border: 2px solid var(--success);
+            border-radius: 12px;
+            margin-bottom: 15px;
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        .scan-overlay.active {
+            display: block;
         }
 
-        label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #64748b;
-            text-align: left;
-        }
-
-        input {
-            padding: 12px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-            text-align: center; /* Text in Eingabefeldern zentrieren */
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        .scan-overlay p {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #166534;
         }
 
         button {
@@ -159,7 +108,6 @@
         .btn-danger { background-color: var(--danger); }
         .btn-danger:hover { background-color: #dc2626; }
 
-        /* Tabellen Styling */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -168,7 +116,7 @@
 
         th, td {
             padding: 14px 10px;
-            text-align: center; /* Tabelleninhalt zentrieren */
+            text-align: center;
             border-bottom: 1px solid var(--border);
         }
 
@@ -180,7 +128,7 @@
 
         tr.highlight {
             background-color: #f0fdf4;
-            animation: flash 1.5s ease-out;
+            animation: flash 1.2s ease-out;
         }
 
         @keyframes flash {
@@ -188,10 +136,29 @@
             100% { background-color: #f0fdf4; }
         }
 
+        .editable-name {
+            border: 1px solid transparent;
+            background: transparent;
+            font-weight: bold;
+            text-align: center;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text);
+            width: 90%;
+            padding: 4px;
+        }
+
+        .editable-name:focus {
+            border-color: var(--primary);
+            background: white;
+            border-radius: 4px;
+            outline: none;
+        }
+
         .actions {
             display: flex;
             gap: 6px;
-            justify-content: center; /* Buttons in der Tabelle zentrieren */
+            justify-content: center;
         }
 
         .btn-small {
@@ -206,42 +173,27 @@
     <div class="container">
         <h1>📦 Smart Inventur Pro</h1>
 
-        <div class="tab-navigation">
-            <button class="tab-btn active" onclick="switchTab('scan-tab')">📷 Scanner-Modus</button>
-            <button class="tab-btn" onclick="switchTab('edit-tab')">✍️ Artikel verwalten</button>
-        </div>
-
-        <div id="scan-tab" class="card tab-content active">
-            <h2>Barcode oder QR-Code scannen</h2>
-            <div id="reader"></div>
-        </div>
-
-        <div id="edit-tab" class="card tab-content">
-            <h2>Artikel manuell anlegen / ändern</h2>
-            <div class="form-container">
-                <div class="input-group">
-                    <label for="artikelName">Artikelname</label>
-                    <input type="text" id="artikelName" placeholder="z.B. Kaffeebohnen">
-                </div>
-                <div class="input-group">
-                    <label for="artikelCode">Barcode / ID</label>
-                    <input type="text" id="artikelCode" placeholder="Code (automatisch oder manuell)">
-                </div>
-                <div class="input-group">
-                    <label for="artikelMenge">Menge hinzufügen</label>
-                    <input type="number" id="artikelMenge" value="1" min="1">
-                </div>
-                <button class="btn-success" onclick="artikelSpeichern()">In den Bestand übernehmen</button>
+        <div class="card">
+            <h2>Kamera-Scanner</h2>
+            
+            <div id="scanOverlay" class="scan-overlay">
+                <p id="scanInfoText">Artikel erfasst!</p>
+                <button onclick="scannerFortsetzen()">Nächsten Artikel scannen</button>
             </div>
+
+            <div id="reader"></div>
         </div>
 
         <div class="card" style="overflow-x: auto;">
             <h2>📋 Aktueller Lagerbestand</h2>
+            <p style="text-align: center; color: #94a3b8; font-size: 0.8rem; margin-top: -15px; margin-bottom: 15px;">
+                Tippe auf den Namen eines Artikels, um ihn umzubenennen.
+            </p>
             <table>
                 <thead>
                     <tr>
                         <th>Barcode</th>
-                        <th>Artikel</th>
+                        <th>Artikelname</th>
                         <th>Menge</th>
                         <th>Aktionen</th>
                     </tr>
@@ -253,63 +205,35 @@
     </div>
 
     <script>
-        // Daten aus LocalStorage laden
         let inventar = JSON.parse(localStorage.getItem('inventarData')) || [];
+        let html5QrcodeScanner;
+        let audioCtx = null; // Für den Piepton
 
         window.onload = function() {
             tabelleRendern();
             scannerStarten();
         };
 
-        // Funktion zum Wechseln der Fenster (Tabs)
-        function switchTab(tabId) {
-            // Alle Tabs unsichtbar machen
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
-            // Gewählten Tab aktivieren
-            document.getElementById(tabId).classList.add('active');
-            
-            // Zugehörigen Button als aktiv markieren
-            const eventBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
-                (tabId === 'scan-tab' && btn.innerText.includes('Scanner')) || 
-                (tabId === 'edit-tab' && btn.innerText.includes('verwalten'))
-            );
-            if (eventBtn) eventBtn.classList.add('active');
+        // Funktion erzeugt einen kurzen "Beep"-Ton als Bestätigung
+        function playBeep() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = 800; // Tonhöhe
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); // Lautstärke
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15); // Tondauer 150ms
         }
 
-        // Funktion: Speichern
-        function artikelSpeichern() {
-            const name = document.getElementById('artikelName').value.trim();
-            const code = document.getElementById('artikelCode').value.trim();
-            const menge = parseInt(document.getElementById('artikelMenge').value) || 0;
-
-            if (!name) {
-                alert('Bitte gib einen Artikelnamen ein.');
-                return;
+        function nameAktualisieren(id, neuerName) {
+            const artikel = inventar.find(item => item.id === id);
+            if (artikel && neuerName.trim() !== "") {
+                artikel.name = neuerName.trim();
+                localStorage.setItem('inventarData', JSON.stringify(inventar));
             }
-
-            let existierenderArtikel = null;
-            if (code && code !== 'Kein Code') {
-                existierenderArtikel = inventar.find(item => item.code === code);
-            } else {
-                existierenderArtikel = inventar.find(item => item.name.toLowerCase() === name.toLowerCase());
-            }
-
-            if (existierenderArtikel) {
-                existierenderArtikel.menge += menge;
-            } else {
-                inventar.push({
-                    id: Date.now().toString(),
-                    code: code || 'Kein Code',
-                    name: name,
-                    menge: menge
-                });
-            }
-
-            speichernUndAktualisieren();
-            formularLeeren();
-            if (code) artikelHighlighten(code);
         }
 
         function artikelLoeschen(id) {
@@ -333,12 +257,6 @@
             tabelleRendern();
         }
 
-        function formularLeeren() {
-            document.getElementById('artikelName').value = '';
-            document.getElementById('artikelCode').value = '';
-            document.getElementById('artikelMenge').value = '1';
-        }
-
         function tabelleRendern() {
             const liste = document.getElementById('inventurListe');
             liste.innerHTML = '';
@@ -352,8 +270,10 @@
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-code', item.code);
                 tr.innerHTML = `
-                    <td style="font-family: monospace; font-size: 0.9rem;">${item.code}</td>
-                    <td><strong>${item.name}</strong></td>
+                    <td style="font-family: monospace; font-size: 0.9rem; color: #64748b;">${item.code}</td>
+                    <td>
+                        <input type="text" class="editable-name" value="${item.name}" onchange="nameAktualisieren('${item.id}', this.value)">
+                    </td>
                     <td><span style="font-size: 1.1rem; font-weight: bold; color: var(--primary);">${item.menge}</span></td>
                     <td class="actions">
                         <button class="btn-small" onclick="mengeAendern('${item.id}', 1)">+</button>
@@ -366,21 +286,20 @@
         }
 
         function artikelHighlighten(code) {
-            if (!code || code === 'Kein Code') return;
             const zeilen = document.querySelectorAll(`tr[data-code="${code}"]`);
             zeilen.forEach(zeile => {
                 zeile.classList.add('highlight');
                 zeile.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => zeile.classList.remove('highlight'), 2000);
+                setTimeout(() => zeile.classList.remove('highlight'), 1200);
             });
         }
 
-        // Kamera-Scanner Logik
+        // KAMERA-SCANNER LOGIK
         function scannerStarten() {
-            const html5QrcodeScanner = new Html5QrcodeScanner(
+            html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader", 
                 { 
-                    fps: 12, 
+                    fps: 10, 
                     qrbox: { width: 250, height: 150 },
                     rememberLastUsedCamera: true
                 },
@@ -388,27 +307,45 @@
             );
 
             function onScanSuccess(decodedText, decodedResult) {
-                // Prüfen, ob der Code bereits existiert
-                const treffer = inventar.find(item => item.code === decodedText);
+                // 1. Scanner sofort pausieren (verhindert das automatische Hochzählen)
+                html5QrcodeScanner.pause(true);
                 
+                // 2. Ton abspielen
+                playBeep();
+
+                // 3. Artikel im Speicher verarbeiten
+                const treffer = inventar.find(item => item.code === decodedText);
+                let anzeigeName = "";
+
                 if (treffer) {
-                    // Artikel existiert -> direkt um 1 erhöhen
                     treffer.menge += 1;
-                    speichernUndAktualisieren();
-                    artikelHighlighten(decodedText);
+                    anzeigeName = treffer.name;
                 } else {
-                    // Artikel ist neu -> Automatisch in das Speicher-Fenster wechseln und Code eintragen
-                    document.getElementById('artikelCode').value = decodedText;
-                    switchTab('edit-tab');
-                    document.getElementById('artikelName').focus();
+                    anzeigeName = "Neu: " + decodedText;
+                    inventar.push({
+                        id: Date.now().toString(),
+                        code: decodedText,
+                        name: anzeigeName,
+                        menge: 1
+                    });
                 }
+                
+                speichernUndAktualisieren();
+                artikelHighlighten(decodedText);
+
+                // 4. Benachrichtigung über der Kamera einblenden
+                document.getElementById('scanInfoText').innerHTML = `✅ <strong>${anzeigeName}</strong> erfasst! (Menge erhöht)`;
+                document.getElementById('scanOverlay').classList.add('active');
             }
 
-            function onScanFailure(error) {
-                // Sucht im Hintergrund weiter
-            }
+            html5QrcodeScanner.render(onScanSuccess, function(error){});
+        }
 
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        // Wird aufgerufen, wenn der Nutzer auf "Nächsten Artikel scannen" klickt
+        function scannerFortsetzen() {
+            document.getElementById('scanOverlay').classList.remove('active');
+            // Kamera läuft kontrolliert weiter
+            html5QrcodeScanner.resume();
         }
     </script>
 </body>
