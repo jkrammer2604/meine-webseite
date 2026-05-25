@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Inventur Pro - Kontrollierter Scan</title>
+    <title>Smart Inventur Pro - Info Modus</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
@@ -11,6 +11,7 @@
             --primary-hover: #4338ca;
             --success: #10b981;
             --danger: #ef4444;
+            --info: #0ea5e9;
             --bg: #f8fafc;
             --card-bg: #ffffff;
             --text: #1e293b;
@@ -56,9 +57,42 @@
         h2 {
             margin-top: 0;
             font-size: 1.25rem;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
             color: #475569;
+        }
+
+        /* Modus-Auswahl Schalter */
+        .mode-selector {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: transparent;
+            color: #64748b;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active[data-mode="buchen"] {
+            background: var(--success);
+            color: white;
+        }
+
+        .mode-btn.active[data-mode="abrufen"] {
+            background: var(--info);
+            color: white;
         }
 
         #reader {
@@ -69,27 +103,21 @@
             background: #fafafa;
         }
 
-        /* Overlay für die Scan-Pause */
+        /* Overlay für Ergebnisse */
         .scan-overlay {
             display: none;
             text-align: center;
             padding: 20px;
-            background-color: #f0fdf4;
-            border: 2px solid var(--success);
             border-radius: 12px;
             margin-bottom: 15px;
+            border: 2px solid transparent;
         }
 
-        .scan-overlay.active {
-            display: block;
-        }
+        .scan-overlay.active { display: block; }
+        .scan-overlay.buchen-style { background-color: #f0fdf4; border-color: var(--success); }
+        .scan-overlay.abrufen-style { background-color: #f0f9ff; border-color: var(--info); }
 
-        .scan-overlay p {
-            margin: 0 0 15px 0;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #166534;
-        }
+        .scan-overlay p { margin: 0 0 15px 0; font-size: 1.1rem; }
 
         button {
             padding: 12px 20px;
@@ -104,9 +132,6 @@
         }
 
         button:hover { background-color: var(--primary-hover); }
-        .btn-success { background-color: var(--success); width: 100%; }
-        .btn-danger { background-color: var(--danger); }
-        .btn-danger:hover { background-color: #dc2626; }
 
         table {
             width: 100%;
@@ -120,11 +145,7 @@
             border-bottom: 1px solid var(--border);
         }
 
-        th {
-            background-color: #f1f5f9;
-            color: #475569;
-            font-weight: 600;
-        }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; }
 
         tr.highlight {
             background-color: #f0fdf4;
@@ -144,7 +165,7 @@
             font-family: inherit;
             font-size: 1rem;
             color: var(--text);
-            width: 90%;
+            width: 90;
             padding: 4px;
         }
 
@@ -155,17 +176,10 @@
             outline: none;
         }
 
-        .actions {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.9rem;
-            border-radius: 6px;
-        }
+        .actions { display: flex; gap: 6px; justify-content: center; }
+        .btn-small { padding: 6px 12px; font-size: 0.9rem; border-radius: 6px; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #dc2626; }
     </style>
 </head>
 <body>
@@ -176,9 +190,14 @@
         <div class="card">
             <h2>Kamera-Scanner</h2>
             
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="buchen" onclick="setModus('buchen')">📥 Buchen (+1)</button>
+                <button class="mode-btn" data-mode="abrufen" onclick="setModus('abrufen')">🔍 Nur Abrufen (Info)</button>
+            </div>
+            
             <div id="scanOverlay" class="scan-overlay">
                 <p id="scanInfoText">Artikel erfasst!</p>
-                <button onclick="scannerFortsetzen()">Nächsten Artikel scannen</button>
+                <button onclick="scannerFortsetzen()">Nächster Scan</button>
             </div>
 
             <div id="reader"></div>
@@ -186,9 +205,6 @@
 
         <div class="card" style="overflow-x: auto;">
             <h2>📋 Aktueller Lagerbestand</h2>
-            <p style="text-align: center; color: #94a3b8; font-size: 0.8rem; margin-top: -15px; margin-bottom: 15px;">
-                Tippe auf den Namen eines Artikels, um ihn umzubenennen.
-            </p>
             <table>
                 <thead>
                     <tr>
@@ -207,25 +223,33 @@
     <script>
         let inventar = JSON.parse(localStorage.getItem('inventarData')) || [];
         let html5QrcodeScanner;
-        let audioCtx = null; // Für den Piepton
+        let audioCtx = null;
+        let aktuellerModus = "buchen"; // Standardmodus
 
         window.onload = function() {
             tabelleRendern();
             scannerStarten();
         };
 
-        // Funktion erzeugt einen kurzen "Beep"-Ton als Bestätigung
-        function playBeep() {
+        // Wechselt zwischen den Modi
+        function setModus(modus) {
+            aktuellerModus = modus;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.mode-btn[data-mode="${modus}"]`).classList.add('active');
+        }
+
+        function playBeep(art) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = "sine";
-            osc.frequency.value = 800; // Tonhöhe
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); // Lautstärke
+            // Unterschiedliche Töne je nach Modus
+            osc.frequency.value = art === "abrufen" ? 1000 : 800; 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.15); // Tondauer 150ms
+            osc.stop(audioCtx.currentTime + 0.12);
         }
 
         function nameAktualisieren(id, neuerName) {
@@ -294,57 +318,62 @@
             });
         }
 
-        // KAMERA-SCANNER LOGIK
+        // SCANNER LOGIK
         function scannerStarten() {
             html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", 
-                { 
-                    fps: 10, 
-                    qrbox: { width: 250, height: 150 },
-                    rememberLastUsedCamera: true
-                },
-                false
+                "reader", { fps: 10, qrbox: { width: 250, height: 150 }, rememberLastUsedCamera: true }, false
             );
 
             function onScanSuccess(decodedText, decodedResult) {
-                // 1. Scanner sofort pausieren (verhindert das automatische Hochzählen)
                 html5QrcodeScanner.pause(true);
-                
-                // 2. Ton abspielen
-                playBeep();
+                playBeep(aktuellerModus);
 
-                // 3. Artikel im Speicher verarbeiten
                 const treffer = inventar.find(item => item.code === decodedText);
-                let anzeigeName = "";
-
-                if (treffer) {
-                    treffer.menge += 1;
-                    anzeigeName = treffer.name;
-                } else {
-                    anzeigeName = "Neu: " + decodedText;
-                    inventar.push({
-                        id: Date.now().toString(),
-                        code: decodedText,
-                        name: anzeigeName,
-                        menge: 1
-                    });
-                }
+                const overlay = document.getElementById('scanOverlay');
+                const infoText = document.getElementById('scanInfoText');
                 
-                speichernUndAktualisieren();
-                artikelHighlighten(decodedText);
+                // Klassen für das Overlay zurücksetzen
+                overlay.className = "scan-overlay active";
 
-                // 4. Benachrichtigung über der Kamera einblenden
-                document.getElementById('scanInfoText').innerHTML = `✅ <strong>${anzeigeName}</strong> erfasst! (Menge erhöht)`;
-                document.getElementById('scanOverlay').classList.add('active');
+                if (aktuellerModus === "buchen") {
+                    // --- MODUS: BUCHEN ---
+                    overlay.classList.add('buchen-style');
+                    let anzeigeName = "";
+
+                    if (treffer) {
+                        treffer.menge += 1;
+                        anzeigeName = treffer.name;
+                    } else {
+                        anzeigeName = "Neu: " + decodedText;
+                        inventar.push({
+                            id: Date.now().toString(),
+                            code: decodedText,
+                            name: anzeigeName,
+                            menge: 1
+                        });
+                    }
+                    speichernUndAktualisieren();
+                    infoText.innerHTML = `📥 <strong>${anzeigeName}</strong> verbucht!<br>Neue Menge: <strong>${treffer ? treffer.menge : 1}</strong>`;
+                    
+                } else {
+                    // --- MODUS: NUR ABRUFEN ---
+                    overlay.classList.add('abrufen-style');
+                    
+                    if (treffer) {
+                        infoText.innerHTML = `🔍 <strong>Artikel gefunden:</strong><br>Name: ${treffer.name}<br>Aktueller Bestand: <strong>${treffer.menge}</strong>`;
+                    } else {
+                        infoText.innerHTML = `❌ <strong>Code unbekannt</strong><br>Der Code <i>${decodedText}</i> ist nicht im System hinterlegt.`;
+                    }
+                }
+
+                artikelHighlighten(decodedText);
             }
 
             html5QrcodeScanner.render(onScanSuccess, function(error){});
         }
 
-        // Wird aufgerufen, wenn der Nutzer auf "Nächsten Artikel scannen" klickt
         function scannerFortsetzen() {
             document.getElementById('scanOverlay').classList.remove('active');
-            // Kamera läuft kontrolliert weiter
             html5QrcodeScanner.resume();
         }
     </script>
