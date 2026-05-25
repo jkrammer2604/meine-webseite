@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Inventur Pro</title>
+    <title>Smart Inventur Pro - Zentriert</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
@@ -21,54 +21,97 @@
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            max-width: 800px;
-            margin: 0 auto;
+            margin: 0;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Alles horizontal zentrieren */
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px; /* Kompakte, zentrierte Breite */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         h1 {
             text-align: center;
             color: var(--primary);
-            font-size: 2.5rem;
-            margin-bottom: 30px;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        /* Zentrierte Tab-Navigation */
+        .tab-navigation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
         }
 
         .card {
             background: var(--card-bg);
             padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        /* Standardmäßig versteckte Tabs */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         h2 {
             margin-top: 0;
             font-size: 1.25rem;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-bottom: 20px;
+            text-align: center; /* Überschriften zentrieren */
+            color: #475569;
         }
 
-        /* Scanner Bereich */
+        /* Zentrierter Scanner-Bereich */
         #reader {
             width: 100%;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             border: 2px dashed var(--primary) !important;
             background: #fafafa;
         }
 
-        /* Formular Styling */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
-            gap: 12px;
-            align-items: end;
-        }
-
-        @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
+        /* Zentriertes, einspaltiges Formular für bessere Übersicht */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto; /* Formular innerhalb der Card zentrieren */
         }
 
         .input-group {
@@ -81,14 +124,16 @@
             font-size: 0.85rem;
             font-weight: 600;
             color: #64748b;
+            text-align: left;
         }
 
         input {
-            padding: 10px 14px;
+            padding: 12px 14px;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.2s;
+            text-align: center; /* Text in Eingabefeldern zentrieren */
         }
 
         input:focus {
@@ -98,19 +143,19 @@
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 20px;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             color: white;
             background-color: var(--primary);
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s;
         }
 
         button:hover { background-color: var(--primary-hover); }
-        .btn-success { background-color: var(--success); }
+        .btn-success { background-color: var(--success); width: 100%; }
         .btn-danger { background-color: var(--danger); }
         .btn-danger:hover { background-color: #dc2626; }
 
@@ -122,8 +167,8 @@
         }
 
         th, td {
-            padding: 14px;
-            text-align: left;
+            padding: 14px 10px;
+            text-align: center; /* Tabelleninhalt zentrieren */
             border-bottom: 1px solid var(--border);
         }
 
@@ -145,93 +190,115 @@
 
         .actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            justify-content: center; /* Buttons in der Tabelle zentrieren */
         }
 
         .btn-small {
             padding: 6px 12px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
         }
     </style>
 </head>
 <body>
 
-    <h1>📦 Smart Inventur Pro</h1>
+    <div class="container">
+        <h1>📦 Smart Inventur Pro</h1>
 
-    <div class="card">
-        <h2>📷 Kamera-Scanner (Barcode / QR)</h2>
-        <div id="reader"></div>
-    </div>
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('scan-tab')">📷 Scanner-Modus</button>
+            <button class="tab-btn" onclick="switchTab('edit-tab')">✍️ Artikel verwalten</button>
+        </div>
 
-    <div class="card">
-        <h2>✍️ Artikel hinzufügen / bearbeiten</h2>
-        <div class="form-grid">
-            <div class="input-group">
-                <label for="artikelName">Artikelname</label>
-                <input type="text" id="artikelName" placeholder="z.B. Packung Kaffee">
+        <div id="scan-tab" class="card tab-content active">
+            <h2>Barcode oder QR-Code scannen</h2>
+            <div id="reader"></div>
+        </div>
+
+        <div id="edit-tab" class="card tab-content">
+            <h2>Artikel manuell anlegen / ändern</h2>
+            <div class="form-container">
+                <div class="input-group">
+                    <label for="artikelName">Artikelname</label>
+                    <input type="text" id="artikelName" placeholder="z.B. Kaffeebohnen">
+                </div>
+                <div class="input-group">
+                    <label for="artikelCode">Barcode / ID</label>
+                    <input type="text" id="artikelCode" placeholder="Code (automatisch oder manuell)">
+                </div>
+                <div class="input-group">
+                    <label for="artikelMenge">Menge hinzufügen</label>
+                    <input type="number" id="artikelMenge" value="1" min="1">
+                </div>
+                <button class="btn-success" onclick="artikelSpeichern()">In den Bestand übernehmen</button>
             </div>
-            <div class="input-group">
-                <label for="artikelCode">Barcode / ID</label>
-                <input type="text" id="artikelCode" placeholder="Code (optional)">
-            </div>
-            <div class="input-group">
-                <label for="artikelMenge">Menge</label>
-                <input type="number" id="artikelMenge" value="1" min="0">
-            </div>
-            <button class="btn-success" onclick="artikelSpeichern()">Speichern</button>
+        </div>
+
+        <div class="card" style="overflow-x: auto;">
+            <h2>📋 Aktueller Lagerbestand</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Artikel</th>
+                        <th>Menge</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody id="inventurListe">
+                    </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="card" style="overflow-x: auto;">
-        <h2>📋 Aktueller Bestand</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Barcode/ID</th>
-                    <th>Artikelname</th>
-                    <th>Menge</th>
-                    <th>Aktionen</th>
-                </tr>
-            </thead>
-            <tbody id="inventurListe">
-                </tbody>
-        </table>
-    </div>
-
     <script>
-        // Startkonfiguration: Daten aus dem LocalStorage laden oder leeres Array erstellen
+        // Daten aus LocalStorage laden
         let inventar = JSON.parse(localStorage.getItem('inventarData')) || [];
 
-        // App beim Laden initialisieren
         window.onload = function() {
             tabelleRendern();
             scannerStarten();
         };
 
-        // Funktion: Artikel hinzufügen oder aktualisieren
+        // Funktion zum Wechseln der Fenster (Tabs)
+        function switchTab(tabId) {
+            // Alle Tabs unsichtbar machen
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Gewählten Tab aktivieren
+            document.getElementById(tabId).classList.add('active');
+            
+            // Zugehörigen Button als aktiv markieren
+            const eventBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
+                (tabId === 'scan-tab' && btn.innerText.includes('Scanner')) || 
+                (tabId === 'edit-tab' && btn.innerText.includes('verwalten'))
+            );
+            if (eventBtn) eventBtn.classList.add('active');
+        }
+
+        // Funktion: Speichern
         function artikelSpeichern() {
             const name = document.getElementById('artikelName').value.trim();
             const code = document.getElementById('artikelCode').value.trim();
             const menge = parseInt(document.getElementById('artikelMenge').value) || 0;
 
             if (!name) {
-                alert('Bitte gib mindestens einen Artikelnamen ein.');
+                alert('Bitte gib einen Artikelnamen ein.');
                 return;
             }
 
-            // Prüfen, ob der Artikel anhand des Codes oder Namens bereits existiert
             let existierenderArtikel = null;
-            if (code) {
+            if (code && code !== 'Kein Code') {
                 existierenderArtikel = inventar.find(item => item.code === code);
             } else {
                 existierenderArtikel = inventar.find(item => item.name.toLowerCase() === name.toLowerCase());
             }
 
             if (existierenderArtikel) {
-                // Wenn er existiert, Menge addieren
                 existierenderArtikel.menge += menge;
             } else {
-                // Wenn neu, zum Array hinzufügen
                 inventar.push({
                     id: Date.now().toString(),
                     code: code || 'Kein Code',
@@ -242,18 +309,16 @@
 
             speichernUndAktualisieren();
             formularLeeren();
-
-            // Highlighten falls Code vorhanden war
             if (code) artikelHighlighten(code);
         }
 
-        // Funktion: Zeile löschen
         function artikelLoeschen(id) {
-            inventar = inventar.filter(item => item.id !== id);
-            speichernUndAktualisieren();
+            if(confirm("Möchtest du diesen Artikel wirklich löschen?")) {
+                inventar = inventar.filter(item => item.id !== id);
+                speichernUndAktualisieren();
+            }
         }
 
-        // Funktion: Menge direkt in der Tabelle ändern (+/- Buttons)
         function mengeAendern(id, wert) {
             const artikel = inventar.find(item => item.id === id);
             if (artikel) {
@@ -263,26 +328,23 @@
             }
         }
 
-        // Hilfsfunktion: In LocalStorage sichern und Tabelle neu zeichnen
         function speichernUndAktualisieren() {
             localStorage.setItem('inventarData', JSON.stringify(inventar));
             tabelleRendern();
         }
 
-        // Hilfsfunktion: Formularfelder zurücksetzen
         function formularLeeren() {
             document.getElementById('artikelName').value = '';
             document.getElementById('artikelCode').value = '';
             document.getElementById('artikelMenge').value = '1';
         }
 
-        // Funktion: Tabelle auf Basis der Daten generieren
         function tabelleRendern() {
             const liste = document.getElementById('inventurListe');
             liste.innerHTML = '';
 
             if (inventar.length === 0) {
-                liste.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Keine Artikel im Inventar.</td></tr>`;
+                liste.innerHTML = `<tr><td colspan="4" style="color:#94a3b8;">Keine Artikel im Lager.</td></tr>`;
                 return;
             }
 
@@ -291,19 +353,18 @@
                 tr.setAttribute('data-code', item.code);
                 tr.innerHTML = `
                     <td style="font-family: monospace; font-size: 0.9rem;">${item.code}</td>
-                    <strong><td>${item.name}</td></strong>
-                    <td><strong>${item.menge}</strong></td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span style="font-size: 1.1rem; font-weight: bold; color: var(--primary);">${item.menge}</span></td>
                     <td class="actions">
                         <button class="btn-small" onclick="mengeAendern('${item.id}', 1)">+</button>
                         <button class="btn-small" onclick="mengeAendern('${item.id}', -1)">-</button>
-                        <button class="btn-small btn-danger" onclick="artikelLoeschen('${item.id}')">Löschen</button>
+                        <button class="btn-small btn-danger" onclick="artikelLoeschen('${item.id}')">🗑️</button>
                     </td>
                 `;
                 liste.appendChild(tr);
             });
         }
 
-        // Funktion: Einen gescannten/aktualisierten Artikel visuell hervorheben
         function artikelHighlighten(code) {
             if (!code || code === 'Kein Code') return;
             const zeilen = document.querySelectorAll(`tr[data-code="${code}"]`);
@@ -314,40 +375,37 @@
             });
         }
 
-        // --- KAMERA-SCANNER LOGIK ---
+        // Kamera-Scanner Logik
         function scannerStarten() {
             const html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader", 
                 { 
-                    fps: 10, 
+                    fps: 12, 
                     qrbox: { width: 250, height: 150 },
                     rememberLastUsedCamera: true
                 },
-                /* verbose= */ false
+                false
             );
 
             function onScanSuccess(decodedText, decodedResult) {
-                // Wenn ein Code gescannt wurde:
-                document.getElementById('artikelCode').value = decodedText;
-                
-                // Prüfen, ob der Code bereits im System ist
+                // Prüfen, ob der Code bereits existiert
                 const treffer = inventar.find(item => item.code === decodedText);
                 
                 if (treffer) {
-                    // Artikel existiert -> Erhöhe Menge um 1 und speichere
+                    // Artikel existiert -> direkt um 1 erhöhen
                     treffer.menge += 1;
                     speichernUndAktualisieren();
                     artikelHighlighten(decodedText);
-                    formularLeeren();
                 } else {
-                    // Artikel ist neu -> Fokus auf das Namensfeld setzen, damit der User tippen kann
+                    // Artikel ist neu -> Automatisch in das Speicher-Fenster wechseln und Code eintragen
+                    document.getElementById('artikelCode').value = decodedText;
+                    switchTab('edit-tab');
                     document.getElementById('artikelName').focus();
-                    // Kurzer Hinweis-Ton oder optisches Signal wäre hier möglich
                 }
             }
 
             function onScanFailure(error) {
-                // Fehler beim Scannen (kann ignoriert werden, da er permanent sucht)
+                // Sucht im Hintergrund weiter
             }
 
             html5QrcodeScanner.render(onScanSuccess, onScanFailure);
